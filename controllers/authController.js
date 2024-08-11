@@ -61,7 +61,8 @@ async function googleLogin(req, res) {
 
   const token = createToken(req.user);
   res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
-  res.json({ message: 'Logged in successfully with Google' });
+  res.redirect('http://localhost:3000/home');
+  res.json({ message: 'Logged in successfully with google' });
 }
 
 function logout(req, res) {
