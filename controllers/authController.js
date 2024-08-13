@@ -11,7 +11,7 @@ function createToken(user) {
 }
 
 async function register(req, res) {
-  const { username, password, email, role, firstname, middlename, lastname } =
+  const { username, password, email, role} =
     req.body;
 
   try {
@@ -59,10 +59,17 @@ async function googleLogin(req, res) {
     return res.status(401).json({ error: 'Authentication failed' });
   }
 
-  const token = createToken(req.user);
-  res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
-  res.redirect('http://localhost:3000/home');
-  res.json({ message: 'Logged in successfully with google' });
+  try {
+    const token = createToken(req.user);
+    res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
+    
+    // Either redirect or send JSON response, but not both
+    res.redirect('http://localhost:3000/home');
+    // If redirecting, do not send JSON response
+  } catch (error) {
+    // In case of an unexpected error, handle it here
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 }
 
 function logout(req, res) {

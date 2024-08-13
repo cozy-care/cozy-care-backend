@@ -44,7 +44,9 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await db('Users').where({ user_id: id }).first();
+    const userId = typeof id === 'object' && id.user_id ? id.user_id : id;
+
+    const user = await db('Users').where({ user_id: userId }).first();
     done(null, user);
   } catch (error) {
     done(error, null);
