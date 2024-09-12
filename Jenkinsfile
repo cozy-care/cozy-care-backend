@@ -55,7 +55,7 @@ pipeline {
         stage("Docker Backend Up"){
             steps {
                 echo 'Node/Express UP'
-                sh 'docker build -t cozycare-backend-image'
+                sh 'docker build -t cozycare-backend-image .'
                 sh 'docker run -p 3333:3333 cozycare-backend-image'
             }
         }
