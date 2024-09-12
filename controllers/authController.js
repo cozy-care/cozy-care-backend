@@ -64,7 +64,7 @@ async function googleLogin(req, res) {
     res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
     
     // Either redirect or send JSON response, but not both
-    res.redirect('https://gold39.kmitl.ac.th/home');
+    res.redirect('https://gold39.ce.kmitl.ac.th/home');
     // If redirecting, do not send JSON response
   } catch (error) {
     // In case of an unexpected error, handle it here
