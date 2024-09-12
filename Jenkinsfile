@@ -5,14 +5,6 @@ pipeline {
         nodejs "NodeJS"
     }
 
-    environment {
-        SESSION_SECRET = env.SESSION_SECRET
-        JWT_SECRET = env.JWT_SECRET
-        GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID
-        GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET
-        POSTGRES_PASSWORD = env.POSTGRES_PASSWORD
-    }
-
     stages {
 
         stage("Install Environment") {
@@ -28,16 +20,16 @@ pipeline {
                     def runningContainers = sh(script: 'docker ps -q | wc -l', returnStdout: true).trim().toInteger()
 
                     if (runningContainers > 0) {
-                        sh 'docker stop $(docker ps -a -q --filter "ancestor=cozycare-backend-image")'
-                        sh 'docker rm $(docker ps -a -q --filter "ancestor=cozycare-backend-image")'
+                        sh 'docker stop $(docker ps -a -q)'
+                        sh 'docker rm $(docker ps -a -q)'
                     } else {
-                        echo "Nothing to stop. Running container count: $runningContainers"
+                        echo "Nothing exist. Running container count: $runningContainers"
                     }
                 }
             }
         }
 
-        stage("Prepare Backend Environment") {
+        stage("Prepare Backend Environment"){
             steps {
                 echo 'Create .env file'
                 script {
@@ -60,11 +52,11 @@ pipeline {
             }
         }
 
-        stage("Docker Backend Up") {
+        stage("Docker Backend Up"){
             steps {
                 echo 'Node/Express UP'
-                sh 'docker build -t cozycare-backend-image .'
-                sh 'docker run -d -p 3333:3333 cozycare-backend-image'
+                sh 'docker build -t cozycare-backend-image'
+                sh 'docker run -p 3333:3333 cozycare-backend-image'
             }
         }
 
