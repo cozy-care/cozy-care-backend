@@ -41,7 +41,7 @@ pipeline {
                     echo "JWT_SECRET=${JWT_SECRET}" >> .env
                     echo "GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}" >> .env
                     echo "GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}" >> .env
-                    echo "GOOGLE_CALLBACK_URL=http://localhost:3333/api/auth/google/callback" >> .env
+                    echo "GOOGLE_CALLBACK_URL=http://161.246.70.39.nip.io/api/auth/google/callback" >> .env
                     echo "POSTGRES_HOST=161.246.70.39" >> .env
                     echo "POSTGRES_PORT=5432" >> .env
                     echo "POSTGRES_USER=cozycareadmin" >> .env
@@ -57,6 +57,13 @@ pipeline {
                 echo 'Node/Express UP'
                 sh 'docker build -t cozycare-backend-image .'
                 sh 'docker run -d -p 3333:3333 cozycare-backend-image'
+            }
+        }
+
+        stage("Docker Frontend Up"){
+            steps {
+                echo 'NextJs UP'
+                sh 'docker run -d -p 3000:3000 cozycare-frontend-image'
             }
         }
 
