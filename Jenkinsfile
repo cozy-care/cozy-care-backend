@@ -5,14 +5,6 @@ pipeline {
         nodejs "NodeJS"
     }
 
-    environment {
-        SESSION_SECRET = credentials('SESSION_SECRET')
-        JWT_SECRET = credentials('JWT_SECRET')
-        GOOGLE_CLIENT_SECRET = credentials('GOOGLE_CLIENT_SECRET')
-        GOOGLE_CLIENT_ID = credentials('GOOGLE_CLIENT_ID')
-        POSTGRES_PASSWORD = credentials('POSTGRES_PASSWORD')
-    }
-
     stages {
 
         stage("Install Environment") {
@@ -45,15 +37,15 @@ pipeline {
                     sh '''
                     echo "CLIENT_URL=http://localhost:3000" >> .env
                     echo "API_PORT=3333" >> .env
-                    echo "SESSION_SECRET=${SESSION_SECRET}" >> .env
-                    echo "JWT_SECRET=${JWT_SECRET}" >> .env
-                    echo "GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}" >> .env
-                    echo "GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}" >> .env
+                    echo "SESSION_SECRET=${env.SESSION_SECRET}" >> .env
+                    echo "JWT_SECRET=${env.JWT_SECRET}" >> .env
+                    echo "GOOGLE_CLIENT_ID=${env.GOOGLE_CLIENT_ID}" >> .env
+                    echo "GOOGLE_CLIENT_SECRET=${env.GOOGLE_CLIENT_SECRET}" >> .env
                     echo "GOOGLE_CALLBACK_URL=http://localhost:3333/api/auth/google/callback" >> .env
                     echo "POSTGRES_HOST=161.246.70.39" >> .env
                     echo "POSTGRES_PORT=5432" >> .env
                     echo "POSTGRES_USER=cozycareadmin" >> .env
-                    echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> .env
+                    echo "POSTGRES_PASSWORD=${env.POSTGRES_PASSWORD}" >> .env
                     echo "POSTGRES_DB=cozycaredb" >> .env
                     '''
                 }
