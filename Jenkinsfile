@@ -29,13 +29,6 @@ pipeline {
             }
         }
 
-        stage("Build Test") {
-            steps {
-                echo 'Test run'
-                sh 'node server.js'
-            }
-        }
-
         stage("Prepare Backend Environment"){
             steps {
                 echo 'Create .env file'
