@@ -31,8 +31,8 @@ pipeline {
 
         stage("Build Test") {
             steps {
-                echo 'Test npm run dev'
-                sh 'npm run dev'
+                echo 'Test run'
+                sh 'node server.js'
             }
         }
 
