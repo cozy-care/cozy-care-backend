@@ -14,11 +14,18 @@ pipeline {
             }
         }
 
-        stage("Clean Docker Container") {
+        stage("Clear Docker Containers") {
             steps {
-                echo 'Cleaning Docker'
-                sh 'docker stop $(docker ps -q)'
-                sh 'docker rm $(docker ps -a -q)'
+                script {
+                    def runningContainers = sh(script: 'docker ps -q | wc -l', returnStdout: true).trim().toInteger()
+
+                    if (runningContainers > 0) {
+                        sh 'docker stop $(docker ps -a -q)'
+                        sh 'docker rm $(docker ps -a -q)'
+                    } else {
+                        echo "Nothing exist. Running container count: $runningContainers"
+                    }
+                }
             }
         }
 
