@@ -37,4 +37,5 @@ async function getLoggedInUserData(req, res) {
   }
 }
 
+
 module.exports = getLoggedInUserData;
