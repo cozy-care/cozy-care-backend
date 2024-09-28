@@ -6,7 +6,6 @@ const {
   logout,
   googleLogin,
 } = require('../controllers/authController');
-const getLoggedInUserData = require('../controllers/userController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
 const router = express.Router();

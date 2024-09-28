@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const db = require('./database');
@@ -30,17 +29,7 @@ passport.use(
           user = { ...newUser, user_id: userId };
         }
 
-        // Generate JWT token after successful authentication
-        const token = jwt.sign(
-          { user_id: user.user_id },
-          process.env.JWT_SECRET,
-          {
-            expiresIn: '1h', // Adjust expiration as necessary
-          },
-        );
-
-        // Pass both user data and token to done callback
-        return done(null, { user, token });
+        return done(null, user);
       } catch (error) {
         return done(error, null);
       }
@@ -48,21 +37,16 @@ passport.use(
   ),
 );
 
-passport.serializeUser((userData, done) => {
-  const user = userData.user;
-  console.log('Serializing user:', user);
+passport.serializeUser((user, done) => {
+  console.log("Serializing user:", user);
   done(null, user.user_id);
 });
 
 passport.deserializeUser(async (id, done) => {
   try {
-    // Check if `id` is an object and extract the `user_id`
     const userId = typeof id === 'object' && id.user_id ? id.user_id : id;
 
-    // Query the user by user_id
     const user = await db('Users').where({ user_id: userId }).first();
-
-    // Pass the user data to the next middleware
     done(null, user);
   } catch (error) {
     done(error, null);
