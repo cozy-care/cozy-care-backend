@@ -26,14 +26,14 @@ async function getLoggedInUserData(req, res) {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-
+    
     // Exclude sensitive information such as password
     const { password, ...userData } = user;
 
     // Return the user data
     res.status(200).json(userData);
   } catch (error) {
-    res.status(500).json({ error: 'Error retrieving user data' });
+    res.status(500).json({ error: 'Error retrieving user data' }, error);
   }
 }
 
