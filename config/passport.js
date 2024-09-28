@@ -29,8 +29,10 @@ passport.use(
           user = { ...newUser, user_id: userId };
         }
 
+        console.log("User found or created:", user); // Log user data
         return done(null, user);
       } catch (error) {
+        console.error("Error in GoogleStrategy:", error); // Log the error
         return done(error, null);
       }
     },
@@ -39,7 +41,11 @@ passport.use(
 
 passport.serializeUser((user, done) => {
   console.log("Serializing user:", user);
-  done(null, user.user_id);
+  if (user && user.user_id) {
+    done(null, user.user_id);
+  } else {
+    done(new Error("User ID is not defined"), null);
+  }
 });
 
 passport.deserializeUser(async (id, done) => {
@@ -47,8 +53,13 @@ passport.deserializeUser(async (id, done) => {
     const userId = typeof id === 'object' && id.user_id ? id.user_id : id;
 
     const user = await db('Users').where({ user_id: userId }).first();
-    done(null, user);
+    if (user) {
+      done(null, user);
+    } else {
+      done(new Error("User not found"), null);
+    }
   } catch (error) {
+    console.error("Error during deserialization:", error); // Log the error
     done(error, null);
   }
 });

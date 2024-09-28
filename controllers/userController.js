@@ -7,7 +7,9 @@ async function getLoggedInUserData(req, res) {
 
   // If no token is found, return an error
   if (!token) {
-    return res.status(401).json({ error: 'No token found, authorization denied' });
+    return res
+      .status(401)
+      .json({ error: 'No token found, authorization denied' });
   }
 
   try {
@@ -15,7 +17,15 @@ async function getLoggedInUserData(req, res) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Extract the user ID from the decoded token
-    const userId = decoded.user_id;
+    let userId;
+
+    if (typeof decoded.user_id === 'string') {
+      userId = decoded.user_id; // Directly use it if it's a string
+    } else if (decoded.user_id && typeof decoded.user_id === 'object') {
+      userId = decoded.user_id.user_id; // Extract from the object if it's an object
+    } else {
+      return res.status(400).json({ error: 'Invalid token: user_id not found' });
+    }
 
     // Query the Users table to get the user data by ID
     const user = await db('Users')
@@ -33,9 +43,9 @@ async function getLoggedInUserData(req, res) {
     // Return the user data
     res.status(200).json(userData);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Error retrieving user data' });
   }
 }
-
 
 module.exports = getLoggedInUserData;
