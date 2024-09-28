@@ -11,8 +11,7 @@ function createToken(user) {
 }
 
 async function register(req, res) {
-  const { username, password, email, role} =
-    req.body;
+  const { username, password, email, role } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -30,6 +29,10 @@ async function register(req, res) {
 
 async function login(req, res) {
   const { username, password } = req.body;
+
+  if (user.google_id) {
+    return res.status(400).json({ error: 'Please login with Google' });
+  }
 
   try {
     const user = await db('Users')
@@ -62,7 +65,7 @@ async function googleLogin(req, res) {
   try {
     const token = createToken(req.user);
     res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
-    
+
     // Either redirect or send JSON response, but not both
     res.redirect('https://gold39.ce.kmitl.ac.th/home');
     // If redirecting, do not send JSON response

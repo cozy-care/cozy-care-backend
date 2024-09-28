@@ -7,7 +7,9 @@ async function getLoggedInUserData(req, res) {
 
   // If no token is found, return an error
   if (!token) {
-    return res.status(401).json({ error: 'No token found, authorization denied' });
+    return res
+      .status(401)
+      .json({ error: 'No token found, authorization denied' });
   }
 
   try {
@@ -26,16 +28,26 @@ async function getLoggedInUserData(req, res) {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     // Exclude sensitive information such as password
     const { password, ...userData } = user;
 
     // Return the user data
     res.status(200).json(userData);
   } catch (error) {
-    res.status(500).json({ error: 'Error retrieving user data' });
+    // Check if it's an invalid or expired token
+    if (error.name === 'TokenExpiredError') {
+      return res
+        .status(401)
+        .json({ error: 'Token expired, please log in again' });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    } else {
+      // For any other error
+      console.error('Error retrieving user data:', error);
+      return res.status(500).json({ error: 'Error retrieving user data' });
+    }
   }
 }
-
 
 module.exports = getLoggedInUserData;
