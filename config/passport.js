@@ -21,8 +21,6 @@ passport.use(
             google_id: profile.id,
             role: 'user',
             alias: 'Unknown',
-            firstname: profile.name.givenName,
-            lastname: profile.name.familyName,
           };
           const [userId] = await db('Users')
             .insert(newUser)
