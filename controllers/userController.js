@@ -24,7 +24,9 @@ async function getLoggedInUserData(req, res) {
     } else if (decoded.user_id && typeof decoded.user_id === 'object') {
       userId = decoded.user_id.user_id; // Extract from the object if it's an object
     } else {
-      return res.status(400).json({ error: 'Invalid token: user_id not found' });
+      return res
+        .status(400)
+        .json({ error: 'Invalid token: user_id not found' });
     }
 
     // Query the Users table to get the user data by ID

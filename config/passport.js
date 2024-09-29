@@ -29,10 +29,10 @@ passport.use(
           user = { ...newUser, user_id: userId };
         }
 
-        console.log("User found or created:", user); // Log user data
+        console.log('User found or created:', user); // Log user data
         return done(null, user);
       } catch (error) {
-        console.error("Error in GoogleStrategy:", error); // Log the error
+        console.error('Error in GoogleStrategy:', error); // Log the error
         return done(error, null);
       }
     },
@@ -40,11 +40,11 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  console.log("Serializing user:", user);
+  console.log('Serializing user:', user);
   if (user && user.user_id) {
     done(null, user.user_id);
   } else {
-    done(new Error("User ID is not defined"), null);
+    done(new Error('User ID is not defined'), null);
   }
 });
 
@@ -56,10 +56,10 @@ passport.deserializeUser(async (id, done) => {
     if (user) {
       done(null, user);
     } else {
-      done(new Error("User not found"), null);
+      done(new Error('User not found'), null);
     }
   } catch (error) {
-    console.error("Error during deserialization:", error); // Log the error
+    console.error('Error during deserialization:', error); // Log the error
     done(error, null);
   }
 });
