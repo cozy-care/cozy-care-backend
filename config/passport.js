@@ -20,6 +20,7 @@ passport.use(
             email: profile.emails[0].value,
             google_id: profile.id,
             role: 'user',
+            alias: 'Unknown',
             firstname: profile.name.givenName,
             lastname: profile.name.familyName,
           };
