@@ -13,6 +13,10 @@ const router = express.Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', authenticateToken, logout);
+router.get('/me', authenticateToken, (req, res) => {
+  res.json({ userId: req.user.user_id }); // Respond with the user ID
+});
+
 
 router.get(
   '/google',
