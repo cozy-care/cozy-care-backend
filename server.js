@@ -9,7 +9,6 @@ const sessionMiddleware = require('./middleware/session');
 const corsOptions = require('./config/corsOptions');
 const chatSocket = require('./sockets/chat');
 const { PORT } = require('./config/env');
-const path = require('path');
 
 // Initialize app
 const app = express();
