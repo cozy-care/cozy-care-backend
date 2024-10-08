@@ -70,7 +70,7 @@ pipeline {
             steps {
                 echo 'Node/Express UP'
                 sh 'docker build -t cozycare-backend-image .'
-                sh 'docker run -d -p 3333:3333 cozycare-backend-image'
+                sh 'docker run -d -p 3333:3333 -v /var/www/uploads:/var/www/uploads cozycare-backend-image'
             }
         }
     }

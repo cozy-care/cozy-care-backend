@@ -16,9 +16,9 @@ const storage = multer.diskStorage({
     cb(null, '/var/www/uploads'); // Ensure this directory exists
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
-  }
+  },
 });
 
 const upload = multer({ storage: storage });

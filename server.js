@@ -28,10 +28,14 @@ passportMiddleware(app);
 app.use('/uploads', express.static('/var/www/uploads'));
 
 // Make io accessible in routes
-app.use('/api', (req, res, next) => {
-  req.io = io;
-  next();
-}, apiRoutes);
+app.use(
+  '/api',
+  (req, res, next) => {
+    req.io = io;
+    next();
+  },
+  apiRoutes,
+);
 
 // WebSocket setup
 chatSocket(io);
