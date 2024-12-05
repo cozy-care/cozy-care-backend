@@ -144,4 +144,60 @@ async function editUserData(req, res) {
   }
 }
 
-module.exports = { getLoggedInUserData, editUserData };
+async function getOtherUserDataByChatId(req, res) {
+  // Get the token from the cookies
+  const token = req.cookies.token;
+
+  // If no token is found, return an error
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: 'No token found, authorization denied' });
+  }
+
+  const { chat_id } = req.params;
+
+  try {
+    // Verify the token using the secret
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Extract the user ID from the decoded token
+    let userId;
+
+    if (typeof decoded.user_id === 'string') {
+      userId = decoded.user_id; // Directly use it if it's a string
+    } else if (decoded.user_id && typeof decoded.user_id === 'object') {
+      userId = decoded.user_id.user_id; // Extract from the object if it's an object
+    } else {
+      return res
+        .status(400)
+        .json({ error: 'Invalid token: user_id not found' });
+    }
+
+    const chat = await db('Chat').where({ chat_id }).first();
+
+    const otherUserId = chat.user1_id === userId ? chat.user2_id : chat.user1_id;
+
+    if (!otherUserId) {
+      return res.status(403).json({ error: 'You are not part of this chat' });
+    }
+
+    // Fetch the other user's profile
+    const otherUserProfile = await db('Users')
+      .select('user_id', 'alias', 'profile_image')
+      .where({ user_id: otherUserId })
+      .first();
+
+    if (!otherUserProfile) {
+      return res.status(404).json({ error: 'Other user not found' });
+    }
+
+    res.status(200).json(otherUserProfile);
+  } catch (error) {
+    console.error('Error retrieving other user profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+  
+}
+
+module.exports = { getLoggedInUserData, editUserData, getOtherUserDataByChatId };

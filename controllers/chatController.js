@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { io } = require('../server'); // Import io for broadcasting messages
+const jwt = require('jsonwebtoken');
 
 async function initiateChat(req, res) {
   const { user1_id, user2_id } = req.body;
@@ -39,6 +40,52 @@ async function initiateChat(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error initiating chat' });
+  }
+}
+
+async function getChat(req, res) {
+
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: 'No token found, authorization denied' });
+  }
+
+  try {
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    let userId;
+
+    if (typeof decoded.user_id === 'string') {
+      userId = decoded.user_id; // Directly use it if it's a string
+    } else if (decoded.user_id && typeof decoded.user_id === 'object') {
+      userId = decoded.user_id.user_id; // Extract from the object if it's an object
+    } else {
+      return res
+        .status(400)
+        .json({ error: 'Invalid token: user_id not found' });
+    }
+
+    const chatIds = await db('Chat')
+      .select('chat_id')
+      .where('user1_id', userId)
+      .orWhere('user2_id', userId);
+    
+    if (chatIds.length > 0) {
+      res.status(200).json(chatIds);
+    } else {
+      res.status(404).json({ error: 'No chat IDs found for this user.' });
+    }
+
+  } catch (error) {
+    console.error("Error fetching chat_id:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 }
 
@@ -84,4 +131,32 @@ async function getMessages(req, res) {
   }
 }
 
-module.exports = { initiateChat, sendMessage, getMessages };
+async function getLastMessageFromOther(req, res) {
+  const { chat_id, user_id } = req.params;
+
+  try {
+    // Fetch all messages for the chat, ordered by sent_at in descending order
+    const messages = await db('Message')
+      .where({ chat_id })
+      .orWhere('sender_id', user_id)
+      .orderBy('sent_at', 'desc'); // Order by sent_at to get the latest first
+
+    if (messages.length === 0) {
+      return res.status(404).json({ message: 'No messages found in this chat' });
+    }
+
+    // Get the last message from the sorted list (first element after sorting by descending order)
+    const lastMessage = messages[0]; 
+
+    // Send back the last message along with sender check
+    return res.status(200).json({
+      lastMessageContent: lastMessage.content,
+      lastMessageTime: lastMessage.sent_at,
+    });
+  } catch (error) {
+    console.error('Error retrieving last message:', error);
+    return res.status(500).json({ error: 'Error retrieving last message' });
+  }
+}
+
+module.exports = { initiateChat, getChat, sendMessage, getMessages, getLastMessageFromOther };
