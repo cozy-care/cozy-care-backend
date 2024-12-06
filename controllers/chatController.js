@@ -142,7 +142,7 @@ async function getLastMessageFromOther(req, res) {
       .orderBy('sent_at', 'desc'); // Order by sent_at to get the latest first
 
     if (messages.length === 0) {
-      return res.status(404).json({ message: 'No messages found in this chat' });
+      return res.status(200).json({ message: 'No messages found in this chat' });
     }
 
     // Get the last message from the sorted list (first element after sorting by descending order)
