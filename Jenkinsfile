@@ -55,12 +55,12 @@ pipeline {
                     echo "JWT_SECRET=${JWT_SECRET}" >> .env
                     echo "GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}" >> .env
                     echo "GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}" >> .env
-                    echo "GOOGLE_CALLBACK_URL=https://gold39.ce.kmitl.ac.th/api/auth/google/callback" >> .env
-                    echo "POSTGRES_HOST=161.246.70.39" >> .env
+                    echo "GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}" >> .env
+                    echo "POSTGRES_HOST=${POSTGRES_HOST}" >> .env
                     echo "POSTGRES_PORT=5432" >> .env
-                    echo "POSTGRES_USER=cozycareadmin" >> .env
+                    echo "POSTGRES_USER=${POSTGRES_USER}" >> .env
                     echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> .env
-                    echo "POSTGRES_DB=cozycaredb" >> .env
+                    echo "POSTGRES_DB=${POSTGRES_DB}" >> .env
                     '''
                 }
             }
