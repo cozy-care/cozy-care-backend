@@ -5,6 +5,8 @@ const {
   login,
   logout,
   googleLogin,
+  sendEmailOTP,
+  verifyOTP,
 } = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -24,5 +26,8 @@ router.get(
   passport.authenticate('google', { failureRedirect: '/login' }),
   googleLogin,
 );
+
+router.post('/sendEmailOtp', sendEmailOTP);
+router.post('/verifyOtp', verifyOTP);
 
 module.exports = router;
