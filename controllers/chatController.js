@@ -44,7 +44,6 @@ async function initiateChat(req, res) {
 }
 
 async function getChat(req, res) {
-
   const token = req.cookies.token;
 
   if (!token) {
@@ -54,9 +53,8 @@ async function getChat(req, res) {
   }
 
   try {
-    
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     let userId;
 
     if (typeof decoded.user_id === 'string') {
@@ -73,18 +71,17 @@ async function getChat(req, res) {
       .select('chat_id')
       .where('user1_id', userId)
       .orWhere('user2_id', userId);
-    
+
     if (chatIds.length > 0) {
       res.status(200).json(chatIds);
     } else {
       res.status(404).json({ error: 'No chat IDs found for this user.' });
     }
-
   } catch (error) {
-    console.error("Error fetching chat_id:", error);
+    console.error('Error fetching chat_id:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
     });
   }
 }
@@ -142,11 +139,13 @@ async function getLastMessageFromOther(req, res) {
       .orderBy('sent_at', 'desc'); // Order by sent_at to get the latest first
 
     if (messages.length === 0) {
-      return res.status(200).json({ message: 'No messages found in this chat' });
+      return res
+        .status(200)
+        .json({ message: 'No messages found in this chat' });
     }
 
     // Get the last message from the sorted list (first element after sorting by descending order)
-    const lastMessage = messages[0]; 
+    const lastMessage = messages[0];
 
     // Send back the last message along with sender check
     return res.status(200).json({
@@ -159,4 +158,10 @@ async function getLastMessageFromOther(req, res) {
   }
 }
 
-module.exports = { initiateChat, getChat, sendMessage, getMessages, getLastMessageFromOther };
+module.exports = {
+  initiateChat,
+  getChat,
+  sendMessage,
+  getMessages,
+  getLastMessageFromOther,
+};

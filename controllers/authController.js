@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-const twilio = require('twilio');
 const db = require('../config/database');
 
 // Function to create a JWT token
@@ -33,7 +32,7 @@ async function register(req, res) {
       alias, // Include alias in the new schema
     });
 
-    res.status(201).json({ message: 'User registered successfully'});
+    res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error('Error during registration:', error.message);
     res.status(500).json({ error: 'Error registering user' });
@@ -95,7 +94,7 @@ async function googleLogin(req, res) {
 }
 
 // Logout function to clear the JWT token from cookies
-async function logout(res) {
+async function logout(req, res) {
   res.clearCookie('token');
   res.json({ message: 'Logged out successfully' });
 }
@@ -126,7 +125,7 @@ async function storeOTP(user_id, otp) {
 
 // Send Email OTP function
 async function sendEmailOTP(req, res) {
-  const { email, user_id } = req.body
+  const { email, user_id } = req.body;
   const otp = generateOTP();
 
   const mailOptions = {
@@ -181,7 +180,7 @@ async function sendEmailOTP(req, res) {
 //       from: process.env.TWILIO_PHONE, // Twilio phone number
 //       to: phone, // Recipient's number
 //     });
-    
+
 //     console.log(`Message sent: ${message.sid}`);
 
 //     await storeOTP(user_id, otp);
@@ -197,7 +196,7 @@ async function sendEmailOTP(req, res) {
 
 // Verify OTP function
 async function verifyOTP(req, res) {
-  const { user_id, otp  } = req.body
+  const { user_id, otp } = req.body;
 
   if (!user_id || !otp) {
     return res.status(400).json({ error: 'UserID and OTP are required.' });
@@ -222,7 +221,7 @@ async function verifyOTP(req, res) {
     }
 
     // Compare the provided OTP with the stored hashed OTP
-    const isValid = await bcrypt.compare(otp , record.otp);
+    const isValid = await bcrypt.compare(otp, record.otp);
     if (!isValid) {
       return res.status(400).json({ error: 'Invalid OTP.' });
     }
@@ -237,4 +236,11 @@ async function verifyOTP(req, res) {
   }
 }
 
-module.exports = { register, login, logout, googleLogin, sendEmailOTP, verifyOTP };
+module.exports = {
+  register,
+  login,
+  logout,
+  googleLogin,
+  sendEmailOTP,
+  verifyOTP,
+};

@@ -4,7 +4,7 @@ const {
   getChat,
   sendMessage,
   getMessages,
-  getLastMessageFromOther
+  getLastMessageFromOther,
 } = require('../controllers/chatController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -14,6 +14,6 @@ router.post('/initiate', initiateChat);
 router.get('/me', authenticateToken, getChat);
 router.post('/send', sendMessage);
 router.get('/:chat_id', getMessages);
-router.get('/:chat_id/lastMessage/:user_id', getLastMessageFromOther)
+router.get('/:chat_id/lastMessage/:user_id', getLastMessageFromOther);
 
 module.exports = router;

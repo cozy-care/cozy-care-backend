@@ -80,7 +80,7 @@ async function editUserData(req, res) {
     }
 
     // Get the data to update from the request body
-    const { username, email, role, alias, profile_image, phone } = req.body;
+    const { username, email, alias, profile_image, phone } = req.body;
 
     if (username) {
       return res.status(400).json({ error: 'Username cannot be changed' });
@@ -90,7 +90,6 @@ async function editUserData(req, res) {
     const updateData = {};
     if (email !== undefined) updateData.email = email;
     if (alias !== undefined) updateData.alias = alias;
-    if (role !== undefined) updateData.role = role;
     if (profile_image !== undefined) updateData.profile_image = profile_image;
     if (phone !== undefined) updateData.phone = phone;
 
@@ -104,7 +103,6 @@ async function editUserData(req, res) {
       .whereNull('deleted_at')
       .update(updateData, [
         'email',
-        'role',
         'alias',
         'profile_image',
         'phone',
@@ -176,7 +174,8 @@ async function getOtherUserDataByChatId(req, res) {
 
     const chat = await db('Chat').where({ chat_id }).first();
 
-    const otherUserId = chat.user1_id === userId ? chat.user2_id : chat.user1_id;
+    const otherUserId =
+      chat.user1_id === userId ? chat.user2_id : chat.user1_id;
 
     if (!otherUserId) {
       return res.status(403).json({ error: 'You are not part of this chat' });
@@ -197,7 +196,62 @@ async function getOtherUserDataByChatId(req, res) {
     console.error('Error retrieving other user profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-  
 }
 
-module.exports = { getLoggedInUserData, editUserData, getOtherUserDataByChatId };
+async function editRole(req, res) {
+  // Get the token from the cookies
+  const token = req.cookies.token;
+  const { role } = req.body;
+
+  // If no token is found, return an error
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: 'No token found, authorization denied' });
+  }
+
+  if (!role) {
+    return res.status(401).json({ error: 'No role select'});
+  }
+
+  try {
+    // Verify the token using the secret
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Extract the user ID from the decoded token
+    let user_id;
+
+    if (typeof decoded.user_id === 'string') {
+      user_id = decoded.user_id; // Directly use it if it's a string
+    } else if (decoded.user_id && typeof decoded.user_id === 'object') {
+      user_id = decoded.user_id.user_id; // Extract from the object if it's an object
+    } else {
+      return res.status(400).json({ error: 'Invalid token: user_id not found' });
+    }
+
+    const result = await db('Users')
+      .where({ user_id: user_id })
+      .whereNull('deleted_at')
+      .update({ role });
+
+    if (result) {
+      return res.status(200).json({ message: 'Role updated successfully' });
+    } else {
+      return res.status(404).json({ error: 'User not found or already deleted' });
+    }
+
+  } catch (error) {
+    console.error(error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = {
+  getLoggedInUserData,
+  editUserData,
+  getOtherUserDataByChatId,
+  editRole
+};
