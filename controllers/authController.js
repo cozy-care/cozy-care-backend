@@ -87,7 +87,7 @@ async function googleLogin(req, res) {
     res.cookie('token', token, { httpOnly: true, maxAge: 3600000 }); // 1 hour
 
     // Redirect or send JSON response (avoid doing both)
-    res.redirect(`'${process.env.GOOGLE_REDIRECT_URL}'`);
+    res.redirect(`${process.env.GOOGLE_REDIRECT_URL}`);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
