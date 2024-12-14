@@ -57,6 +57,8 @@ pipeline {
                     echo "GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}" >> .env
                     echo "GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}" >> .env
                     echo "GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}" >> .env
+                    echo "EMAIL_2FA=${EMAIL_2FA}" >> .env
+                    echo "PASSWORD_2FA=${PASSWORD_2FA}" >> .env
                     echo "POSTGRES_HOST=${POSTGRES_HOST}" >> .env
                     echo "POSTGRES_PORT=5432" >> .env
                     echo "POSTGRES_USER=${POSTGRES_USER}" >> .env
