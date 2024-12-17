@@ -28,7 +28,7 @@ passport.use(
           user = { ...newUser, user_id: userId };
         }
 
-        console.log('User found or created:', user); // Log user data
+
         return done(null, user);
       } catch (error) {
         console.error('Error in GoogleStrategy:', error); // Log the error
@@ -39,7 +39,7 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  console.log('Serializing user:', user);
+
   if (user && user.user_id) {
     done(null, user.user_id);
   } else {

@@ -137,7 +137,7 @@ async function googleLogin(req, res) {
 
   try {
     // Create a token for the authenticated user
-    const token = createToken(user);
+    const token = createToken(req.user);
     res.cookie('token', token, { httpOnly: true, maxAge: 10800000 }); // 3 hour
     console.log('cookie sent!');
 
