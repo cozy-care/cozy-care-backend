@@ -117,4 +117,44 @@ async function createPatient(req, res) {
     }
   }
 
-module.exports = { createPatient };
+async function getAllPatient(req, res) {
+  try {
+    // Query to fetch all patients and their associated details
+    const patients = await db('Patient')
+        .join('SubPatient', 'Patient.patient_id', '=', 'SubPatient.patient_id')
+        .select(
+            'Patient.patient_id',
+            'SubPatient.firstname',
+            'SubPatient.middlename',
+            'SubPatient.lastname',
+            'SubPatient.profile_image',
+            'SubPatient.sex',
+            'SubPatient.birth_date',
+            'SubPatient.weight',
+            'SubPatient.height',
+            'SubPatient.province',
+            'SubPatient.district',
+            'SubPatient.sub_district',
+            'SubPatient.type',
+            'SubPatient.con_disease',
+            'SubPatient.drug_allegry',
+            'SubPatient.drug_used',
+            'SubPatient.is_bedridden',
+            'SubPatient.is_feed',
+            'SubPatient.available_time'
+        );
+
+    // Check if there are any patients in the database
+    if (!patients || patients.length === 0) {
+        return res.status(404).json({ error: 'No patients found' });
+    }
+
+    // Return the list of patients
+    return res.status(200).json(patients);
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = { createPatient, getAllPatient };
