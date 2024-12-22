@@ -33,8 +33,16 @@ async function getAllCaregiver(req, res) {
             return res.status(404).json({ error: 'No caregivers found' });
         }
 
+        // Format available_time to YYYY-MM-DD
+        const formattedCaregivers = caregivers.map((caregiver) => ({
+            ...caregiver,
+            available_time: caregiver.available_time
+                ? new Date(caregiver.available_time).toISOString().split('T')[0]
+                : null, // Ensure null is returned if no available_time
+        }));
+
         // Return the list of caregivers
-        return res.status(200).json(caregivers);
+        return res.status(200).json(formattedCaregivers);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Internal server error', details: error.message });

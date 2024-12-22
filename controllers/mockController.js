@@ -18,7 +18,7 @@ const generateBangkokAddress = () => ({
     ]),
 });
 
-const generateThaiExpertise = () => faker.helpers.arrayElement(['ดูแลผู้สูงอายุ', 'ดูแลเด็กเล็ก', 'พยาบาลผู้ป่วยติดเตียง']);
+const generateThaiExpertise = () => faker.helpers.arrayElement(['ดูแลผู้สูงอายุ', 'ดูแลเด็กเล็ก', 'ดูแลผู้ป่วยติดเตียง']);
 const generateThaiLanguage = () => faker.helpers.arrayElement(['ไทย', 'อังกฤษ', 'จีน', 'ญี่ปุ่น']);
 
 async function insertMockCaregiversAndPatients(req, res) {
@@ -87,7 +87,7 @@ async function insertMockCaregiversAndPatients(req, res) {
                     province: bangkokAddress.province,
                     district: bangkokAddress.district,
                     sub_district: bangkokAddress.sub_district,
-                    type: faker.helpers.arrayElement(['ทั่วไป', 'ผู้ป่วยติดเตียง']),
+                    type: generateThaiExpertise(),
                     con_disease: faker.helpers.arrayElement(['ไม่มี', 'เบาหวาน', 'ความดันโลหิตสูง']),
                     drug_allegry: faker.helpers.arrayElement(['ไม่มี', 'ยาปฏิชีวนะ', 'ยาแก้ปวด']),
                     drug_used: faker.helpers.arrayElement(['ไม่มี', 'ยาเบาหวาน', 'ยาความดัน']),
