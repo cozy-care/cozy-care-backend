@@ -41,7 +41,8 @@ async function insertMockCaregiversAndPatients(req, res) {
                     email: faker.internet.email(),
                     role: 'caregiver',
                     alias: thaiName.firstname,
-                    profile_image: faker.image.avatar()
+                    profile_image: faker.image.avatar(),
+                    isOTP: true
                 },
                 caregiver: {
                     firstname: thaiName.firstname,
@@ -75,7 +76,8 @@ async function insertMockCaregiversAndPatients(req, res) {
                     email: faker.internet.email(),
                     role: 'patient',
                     alias: thaiName.firstname,
-                    profile_image: faker.image.avatar()
+                    profile_image: faker.image.avatar(),
+                    isOTP: true
                 },
                 patient: {
                     firstname: thaiName.firstname,
