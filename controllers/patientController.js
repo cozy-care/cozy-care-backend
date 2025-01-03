@@ -25,7 +25,7 @@ async function createPatient(req, res) {
       }
   
       // Fetch role from the database using user_id
-      const user = await db('Users') // Replace 'Users' with your actual users table name
+      const user = await db('Users')
         .select('role')
         .where({ user_id })
         .first();
@@ -117,17 +117,19 @@ async function createPatient(req, res) {
     }
   }
 
-  async function getAllPatient(req, res) {
+async function getAllPatient(req, res) {
     try {
-        // Query to fetch all patients and their associated details
+        // Query to fetch all patients, their associated details, and user_id from the Users table
         const patients = await db('Patient')
             .join('SubPatient', 'Patient.patient_id', '=', 'SubPatient.patient_id')
+            .join('Users', 'Patient.user_id', '=', 'Users.user_id') // Join with Users table
             .select(
                 'Patient.patient_id',
+                'Users.user_id',
+                'Users.profile_image',
                 'SubPatient.firstname',
                 'SubPatient.middlename',
                 'SubPatient.lastname',
-                'SubPatient.profile_image',
                 'SubPatient.sex',
                 'SubPatient.birth_date',
                 'SubPatient.weight',
@@ -164,5 +166,6 @@ async function createPatient(req, res) {
         return res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 }
+
 
 module.exports = { createPatient, getAllPatient };

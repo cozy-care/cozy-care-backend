@@ -21,6 +21,7 @@ passport.use(
             google_id: profile.id,
             role: 'user',
             alias: 'Unknown',
+            isOTP: true
           };
           const [userId] = await db('Users')
             .insert(newUser)

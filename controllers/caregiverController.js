@@ -23,6 +23,8 @@ async function getAllCaregiver(req, res) {
                 'Caregiver.used_language',
                 'Caregiver.is_approve',
                 'Caregiver.available_time',
+                'Users.user_id',
+                'Users.profile_image',
                 'Users.username',
                 'Users.email',
                 'Users.alias'

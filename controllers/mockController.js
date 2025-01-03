@@ -41,6 +41,7 @@ async function insertMockCaregiversAndPatients(req, res) {
                     email: faker.internet.email(),
                     role: 'caregiver',
                     alias: thaiName.firstname,
+                    profile_image: faker.image.avatar()
                 },
                 caregiver: {
                     firstname: thaiName.firstname,
@@ -55,7 +56,7 @@ async function insertMockCaregiversAndPatients(req, res) {
                     sub_district: bangkokAddress.sub_district,
                     experience: faker.lorem.sentence(),
                     expert: generateThaiExpertise(),
-                    certification_image: faker.image.url(),
+                    certification_image: faker.image.avatar(),
                     used_language: generateThaiLanguage(),
                     is_approve: faker.datatype.boolean(),
                     available_time: faker.date.future().toISOString().split('T')[0], // Generate future date in YYYY-MM-DD format
@@ -74,12 +75,13 @@ async function insertMockCaregiversAndPatients(req, res) {
                     email: faker.internet.email(),
                     role: 'patient',
                     alias: thaiName.firstname,
+                    profile_image: faker.image.avatar()
                 },
                 patient: {
                     firstname: thaiName.firstname,
                     middlename: '-', // Set middlename to null
                     lastname: thaiName.lastname,
-                    profile_image: faker.image.url(),
+                    profile_image: faker.image.avatar(),
                     sex: faker.helpers.arrayElement(['ชาย', 'หญิง']),
                     birth_date: faker.date.birthdate({ min: 0, max: 100, mode: 'age' }),
                     weight: faker.number.float({ min: 3, max: 150 }),
