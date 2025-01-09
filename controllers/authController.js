@@ -79,13 +79,14 @@ async function register(req, res) {
 
 // Login function to authenticate users based on username and password
 async function login(req, res) {
-  const { username, password } = req.body;
+  const { usernameOrEmail, password } = req.body;
 
   try {
     // Find the user in the database by username, ignoring those with deleted_at set
     const user = await db('Users')
-      .where({ username })
-      .whereNull('deleted_at') // Ensure the account isn't soft deleted
+      .where('username', usernameOrEmail)
+      .orWhere('email', usernameOrEmail)
+      .whereNull('deleted_at')
       .first();
 
     if (!user) {
@@ -307,6 +308,63 @@ async function verifyOTP(req, res) {
   }
 }
 
+async function forgotPassword(req, res) {
+  const { usernameOrEmail } = req.body;
+
+  // Validate input
+  if (!usernameOrEmail) {
+    return res.status(400).json({ error: 'Email or Username is required.' });
+  }
+
+  try {
+    // Check if the user exists by email or username
+    const user = await db('Users')
+      .where('email', usernameOrEmail)
+      .orWhere('username', usernameOrEmail)
+      .first();
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const newPassword = Math.random().toString(36).slice(-8);
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db('Users')
+    .where('user_id', user.user_id)
+    .update({ password: hashedPassword });
+
+    // Email to send the password to
+    const recipientEmail = user.email;
+
+    // Create an email transport
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_2FA,
+        pass: process.env.PASSWORD_2FA,
+      },
+    });
+
+    // Compose the email
+    const mailOptions = {
+      from: process.env.EMAIL_2FA,
+      to: recipientEmail,
+      subject: 'Your Password Recovery',
+      text: `Dear ${user.username},\n\nYour password is: ${newPassword}\n\nPlease keep it secure.`,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'Password has been sent to your registered email.' });
+  } catch (error) {
+    console.error('Error during forgot password process:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+}
+
 module.exports = {
   register,
   login,
@@ -314,4 +372,5 @@ module.exports = {
   googleLogin,
   sendEmailOTP,
   verifyOTP,
+  forgotPassword,
 };

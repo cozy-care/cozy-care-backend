@@ -7,6 +7,7 @@ const {
   googleLogin,
   sendEmailOTP,
   verifyOTP,
+  forgotPassword,
 } = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/authMiddleware');
 
@@ -29,5 +30,6 @@ router.get(
 
 router.post('/sendEmailOtp', sendEmailOTP);
 router.post('/verifyOtp', verifyOTP);
+router.post('/sendResetPasswordEmail', forgotPassword);
 
 module.exports = router;
