@@ -43,10 +43,13 @@ async function register(req, res) {
     }
 
     // Hash the password before storing it in the database
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const salt = bcrypt.genSaltSync(10); 
+    const hashedPassword = await bcrypt.hashSync(password, salt);
 
     // Insert the new user into the database
-    await db('Users').insert({
+    const result = await db('Users')
+    .returning('user_id')
+    .insert({
       username,
       password: hashedPassword,
       email,
@@ -54,11 +57,13 @@ async function register(req, res) {
       alias,
     });
 
+    const user_id = result[0].user_id;
     // Return a success response with user details (exclude sensitive info)
     res.status(201).json({
       message: 'User registered successfully',
       user: {
         username,
+        user_id,
         email,
         role,
         alias,
@@ -99,22 +104,11 @@ async function login(req, res) {
     }
 
     // Validate the provided password against the stored hashed password
-    const validPassword = await bcrypt.compare(password, user.password);
+    const validPassword = bcrypt.compareSync(password, user.password);
     if (!validPassword) {
       return res.status(400).json({ error: 'Invalid password' });
     }
 
-    // Check if the user requires OTP verification
-    if (user.isOTP == false) {
-      return res.status(200).json({ 
-        message: 'OTP verification required', 
-        isOTP: user.isOTP,
-        email: user.email,
-        userID: user.user_id
-      });
-    }
-
-    // If no OTP verification is required, create a JWT token and set it as a cookie
     const token = createToken(user);
     res.cookie('token', token, { httpOnly: true, maxAge: 10800000 }); // 3 hour
     console.log('cookie sent!');
@@ -182,6 +176,10 @@ async function storeOTP(user_id, otp) {
 // Send Email OTP function
 async function sendEmailOTP(req, res) {
   const { email, user_id } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email and UserID is required.' });
+  }
+
   const otp = generateOTP();
 
   const mailOptions = {
@@ -198,10 +196,6 @@ async function sendEmailOTP(req, res) {
       pass: process.env.PASSWORD_2FA,
     },
   });
-
-  if (!email) {
-    return res.status(400).json({ error: 'Email and UserID is required.' });
-  }
 
   try {
     // Send OTP email
@@ -289,8 +283,7 @@ async function verifyOTP(req, res) {
 
     // Update the isOTP field to true in the Users table
     await db('Users')
-      .where({ user_id }) // Assuming "id" is the column name for user ID
-      .update({ isOTP: true });
+      .where({ user_id }); // Assuming "id" is the column name for user ID
 
     const user = await db('Users')
       .where({ user_id })
