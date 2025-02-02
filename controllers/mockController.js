@@ -2,9 +2,20 @@ const db = require('../config/database');
 const { faker } = require('@faker-js/faker');
 
 const generateThaiName = () => ({
-    firstname: faker.helpers.arrayElement(['สมชาย', 'สมหญิง', 'วรัญญา', 'จารุวัฒน์', 'ณัฐวุฒิ', 'ศศิธร']),
-    lastname: faker.helpers.arrayElement(['สวัสดี', 'พงศ์สุวรรณ', 'วัฒนกุล', 'ภัทรศรี', 'บุญญาภา']),
+    firstname: faker.helpers.arrayElement([
+        'สมชาย', 'สมหญิง', 'วรัญญา', 'จารุวัฒน์', 'ณัฐวุฒิ', 'ศศิธร',
+        'กิตติพงษ์', 'อภิชาติ', 'ธนวัฒน์', 'ภานุพงศ์', 'ชัยวัฒน์', 'นรินทร์', 
+        'วราภรณ์', 'ปวีณา', 'สุธิดา', 'อรณิชา', 'ธัญญลักษณ์', 'วรินทร์', 
+        'พิชญ์', 'ธีรภัทร์', 'พิมพ์ชนก'
+    ]),
+    lastname: faker.helpers.arrayElement([
+        'สวัสดี', 'พงศ์สุวรรณ', 'วัฒนกุล', 'ภัทรศรี', 'บุญญาภา', 
+        'จันทร์โอชา', 'วิริยะกุล', 'รัตนาธิเบศร์', 'ศรีสุข', 'อินทรสุข', 
+        'วงศ์สุวรรณ', 'ชัยกุล', 'ธนกิจ', 'อัศวิน', 'กิตติศักดิ์', 
+        'พฤกษชาติ', 'มหาวงศ์', 'ทองสวัสดิ์', 'ปัญญากุล', 'พิพัฒน์พงศ์'
+    ])
 });
+
 
 const generateBangkokAddress = () => ({
     province: 'กรุงเทพมหานคร',
@@ -18,6 +29,23 @@ const generateBangkokAddress = () => ({
     ]),
 });
 
+
+const generateProfile = () => ({
+    patient: faker.helpers.arrayElement([
+        'https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b2xkJTIwcGVyc29ufGVufDB8fDB8fHww',
+        'https://plus.unsplash.com/premium_photo-1691003661129-3af2949db30a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8b2xkJTIwcGVyc29ufGVufDB8fDB8fHww',
+        'https://plus.unsplash.com/premium_photo-1675674458649-0c667500f3cc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8b2xkJTIwcGVyc29ufGVufDB8fDB8fHww',
+        'https://images.unsplash.com/photo-1608649672519-e8797a9560cf?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fG9sZCUyMHBlcnNvbnxlbnwwfHwwfHx8MA%3D%3D',
+        'https://plus.unsplash.com/premium_photo-1679440415220-0830913ff645?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8b2xkJTIwcGVyc29ufGVufDB8fDB8fHww'
+    ]),
+    caregiver: faker.helpers.arrayElement([
+        'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fG51cnNlfGVufDB8fDB8fHww',
+        'https://plus.unsplash.com/premium_photo-1681967053996-4275be0191e7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fG51cnNlfGVufDB8fDB8fHww',
+        'https://plus.unsplash.com/premium_photo-1682141142889-218debf4f8dc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fG51cnNlfGVufDB8fDB8fHww',
+        'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjd8fG51cnNlfGVufDB8fDB8fHww',
+        'https://images.unsplash.com/photo-1643297654416-05795d62e39c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MzV8fG51cnNlfGVufDB8fDB8fHww'
+    ])
+});
 const generateThaiExpertise = () => faker.helpers.arrayElement(['ดูแลผู้สูงอายุ', 'ดูแลเด็กเล็ก', 'ดูแลผู้ป่วยติดเตียง']);
 const generateThaiLanguage = () => faker.helpers.arrayElement(['ไทย', 'อังกฤษ', 'จีน', 'ญี่ปุ่น']);
 
@@ -33,6 +61,7 @@ async function insertMockCaregiversAndPatients(req, res) {
         const mockCaregivers = Array.from({ length: caregiverCount || 0 }, () => {
             const thaiName = generateThaiName();
             const bangkokAddress = generateBangkokAddress();
+            const profile = generateProfile();
 
             return {
                 user: {
@@ -41,8 +70,7 @@ async function insertMockCaregiversAndPatients(req, res) {
                     email: faker.internet.email(),
                     role: 'caregiver',
                     alias: thaiName.firstname,
-                    profile_image: faker.image.avatar(),
-                    isOTP: true
+                    profile_image: profile.caregiver,
                 },
                 caregiver: {
                     firstname: thaiName.firstname,
@@ -57,7 +85,7 @@ async function insertMockCaregiversAndPatients(req, res) {
                     sub_district: bangkokAddress.sub_district,
                     experience: faker.lorem.sentence(),
                     expert: generateThaiExpertise(),
-                    certification_image: faker.image.avatar(),
+                    certification_image: faker.image.urlPicsumPhotos(),
                     used_language: generateThaiLanguage(),
                     is_approve: faker.datatype.boolean(),
                     available_time: faker.date.future().toISOString().split('T')[0], // Generate future date in YYYY-MM-DD format
@@ -68,7 +96,9 @@ async function insertMockCaregiversAndPatients(req, res) {
         const mockPatients = Array.from({ length: patientCount || 0 }, () => {
             const thaiName = generateThaiName();
             const bangkokAddress = generateBangkokAddress();
+            const profile = generateProfile();
 
+            const profilePatient = profile.patient
             return {
                 user: {
                     username: faker.internet.username(),
@@ -76,14 +106,13 @@ async function insertMockCaregiversAndPatients(req, res) {
                     email: faker.internet.email(),
                     role: 'patient',
                     alias: thaiName.firstname,
-                    profile_image: faker.image.avatar(),
-                    isOTP: true
+                    profile_image: profilePatient,
                 },
                 patient: {
                     firstname: thaiName.firstname,
                     middlename: '-', // Set middlename to null
                     lastname: thaiName.lastname,
-                    profile_image: faker.image.avatar(),
+                    profile_image: profilePatient,
                     sex: faker.helpers.arrayElement(['ชาย', 'หญิง']),
                     birth_date: faker.date.birthdate({ min: 0, max: 100, mode: 'age' }),
                     weight: faker.number.float({ min: 3, max: 150 }),
