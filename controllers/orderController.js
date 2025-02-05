@@ -1,10 +1,36 @@
+const dayjs = require('dayjs');
+const buddhistEra = require('dayjs/plugin/buddhistEra'); // Plugin for Buddhist calendar
 const db = require('../config/database');
+
+require('dayjs/locale/th'); // Load Thai locale
+dayjs.extend(buddhistEra);
+dayjs.locale('th');
+
+const FIXED_LAT = 13.726725;
+const FIXED_LON = 100.780125;
+
+// Function to calculate distance using Haversine formula
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const toRadians = (degrees) => (degrees * Math.PI) / 180;
+    const R = 6371; // Radius of Earth in km
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRadians(lat1)) *
+            Math.cos(toRadians(lat2)) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
 
 async function getAllCaregiverOrder(req, res) {
     try {
-        // Query to fetch all caregiver orders and their associated caregiver details
+        // Query to fetch all caregiver orders, their associated caregiver details, and user profile image
         const caregiverOrders = await db('CaregiverOrder')
             .join('Caregiver', 'CaregiverOrder.caregiver_id', '=', 'Caregiver.caregiver_id')
+            .join('Users', 'Caregiver.user_id', '=', 'Users.user_id')
             .select(
                 'Caregiver.user_id',
                 'Caregiver.firstname',
@@ -24,26 +50,55 @@ async function getAllCaregiverOrder(req, res) {
                 'CaregiverOrder.price',
                 'CaregiverOrder.more_skill',
                 'CaregiverOrder.start_time',
-                'CaregiverOrder.end_time'
+                'CaregiverOrder.end_time',
+                'Users.profile_image'
             );
 
-        // Check if there are any caregiver orders in the database
         if (!caregiverOrders || caregiverOrders.length === 0) {
             return res.status(404).json({ error: 'No caregiver orders found' });
         }
 
-        // Format the start_time and end_time to YYYY-MM-DD
-        const formattedCaregiverOrders = caregiverOrders.map((order) => ({
-            ...order,
-            start_time: order.start_time
-                ? new Date(order.start_time).toISOString().split('T')[0]
-                : null,
-            end_time: order.end_time
-                ? new Date(order.end_time).toISOString().split('T')[0]
-                : null,
-        }));
+        const formatThaiDateStart = (date) => {
+            if (!date) return null;
+            return dayjs(date).format('D MMM');
+        };
 
-        // Return the list of caregiver orders
+        const formatThaiDateEnd = (date) => {
+            if (!date) return null;
+            return dayjs(date).format('D MMM BBBB');
+        };
+        
+        const formattedCaregiverOrders = caregiverOrders.map((order) => {
+            let startTime = formatThaiDateStart(order.start_time);
+            let endTime = formatThaiDateEnd(order.end_time);
+
+            let distance = null;
+            if (order.geocode) {
+                const [lat, lon] = order.geocode.split(',').map(Number);
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    distance = calculateDistance(FIXED_LAT, FIXED_LON, lat, lon).toFixed(2);
+                }
+            }
+
+            // Format height and weight to two decimal places
+            const formattedHeight = parseFloat(order.height).toFixed(2);
+            const formattedWeight = parseFloat(order.weight).toFixed(2);
+
+            // Format price as "price บาท / payment_type"
+            const formattedPrice = `${order.price} บาท / ${order.payment_type}`;
+
+            return {
+                ...order,
+                start_time: startTime,
+                end_time: endTime,
+                available_time: startTime && endTime ? `${startTime} - ${endTime}` : null,
+                distance_km: distance ? `${distance}` : 'Unknown',
+                height: formattedHeight,
+                weight: formattedWeight,
+                price: formattedPrice,
+            };
+        });
+
         return res.status(200).json(formattedCaregiverOrders);
     } catch (error) {
         console.error(error);

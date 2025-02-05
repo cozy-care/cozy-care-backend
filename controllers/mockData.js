@@ -4,9 +4,21 @@ const bcrypt = require('bcrypt');
 
 // Helper functions
 const generateThaiName = (gender) => {
-    const maleFirstNames = ['สมชาย', 'จารุวัฒน์', 'ณัฐวุฒิ', 'กิตติพงษ์', 'ธนวัฒน์', 'ภานุพงศ์', 'ชัยวัฒน์', 'นรินทร์', 'ธีรภัทร์'];
-    const femaleFirstNames = ['สมหญิง', 'วรัญญา', 'ศศิธร', 'วราภรณ์', 'ปวีณา', 'สุธิดา', 'อรณิชา', 'ธัญญลักษณ์', 'พิมพ์ชนก'];
-    const lastNames = ['สวัสดี', 'พงศ์สุวรรณ', 'วัฒนกุล', 'ภัทรศรี', 'บุญญาภา', 'จันทร์โอชา', 'วิริยะกุล', 'รัตนาธิเบศร์', 'ศรีสุข'];
+    const maleFirstNames = [
+        'สมชาย', 'จารุวัฒน์', 'ณัฐวุฒิ', 'กิตติพงษ์', 'ธนวัฒน์', 
+        'ภานุพงศ์', 'ชัยวัฒน์', 'นรินทร์', 'ธีรภัทร์', 'ปรเมศวร์', 
+        'อรรถพล', 'วรากร', 'พงศธร', 'ภาสกร', 'ศิรวิทย์'
+    ];
+    const femaleFirstNames = [
+        'สมหญิง', 'วรัญญา', 'ศศิธร', 'วราภรณ์', 'ปวีณา', 
+        'สุธิดา', 'อรณิชา', 'ธัญญลักษณ์', 'พิมพ์ชนก', 'กานดา', 
+        'อารยา', 'ณัฐธิดา', 'มาลินี', 'อัญชลี', 'พัชรี'
+    ];
+    const lastNames = [
+        'สวัสดี', 'พงศ์สุวรรณ', 'วัฒนกุล', 'ภัทรศรี', 'บุญญาภา', 
+        'จันทร์โอชา', 'วิริยะกุล', 'รัตนาธิเบศร์', 'ศรีสุข', 'อินทรโชติ', 
+        'เกียรติสุวรรณ', 'วิชัยโย', 'ปุณณภพ', 'ธีระพงศ์', 'รุ่งเรือง'
+    ];
 
     return {
         firstname: faker.helpers.arrayElement(gender === 'male' ? maleFirstNames : femaleFirstNames),
@@ -16,23 +28,36 @@ const generateThaiName = (gender) => {
 
 const generateProfileImage = (gender) => {
     const maleImages = [
-        'https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8b2xkJTIwcGVyc29ufGVufDB8fDB8fHww',
-        'https://plus.unsplash.com/premium_photo-1691003661129-3af2949db30a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8b2xkJTIwcGVyc29ufGVufDB8fDB8fHww',
+        'https://img.freepik.com/free-photo/confident-young-male-doctor-standing-keeping-hands-hips-healthcare-concept_1262-12642.jpg?semt=ais_hybrid',
+        'https://img.freepik.com/free-photo/medium-shot-male-nurse-posing_23-2150796818.jpg?semt=ais_hybrid',
+        'https://img.freepik.com/free-photo/confident-young-male-doctor-extending-arm-handshake-friendly-doctor-concept_1262-12641.jpg?semt=ais_hybrid',
     ];
     const femaleImages = [
-        'https://plus.unsplash.com/premium_photo-1675674458649-0c667500f3cc?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8b2xkJTIwcGVyc29ufGVufDB8fDB8fHww',
-        'https://images.unsplash.com/photo-1608649672519-e8797a9560cf?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fG9sZCUyMHBlcnNvbnxlbnwwfHwwfHx8MA%3D%3D',
+        'https://img.freepik.com/free-photo/asian-female-doctor-physician-medical-uniform-with-stethoscope-cross-arms-chest-smiling-looking-like-professional-white-background_1258-83205.jpg?semt=ais_hybrid',
+        'https://img.freepik.com/free-photo/portrait-beautiful-young-asian-doctor-asian-woman_74190-10516.jpg?semt=ais_hybrid',
+        'https://img.freepik.com/free-photo/portrait-smiling-asian-nurse-looking-camera-crossing-arms_554837-111.jpg?semt=ais_hybrid',
     ];
     return faker.helpers.arrayElement(gender === 'male' ? maleImages : femaleImages);
 };
 
 const generateLanguage = () => faker.helpers.arrayElement(['ไทย', 'อังกฤษ', 'จีน']);
+const generatePrice = () => faker.helpers.arrayElement(['800', '1600', '3000', '5000']);
+const generateExp = () => faker.helpers.arrayElement(['5 ปี', '3 ปี', '6 ปี', '10 ปี']);
+const generateStuExp = () => faker.helpers.arrayElement(['หลักสูตรอบรมการดูแลผู้สูงอายุ', 'ปริญญาตรีพยาบาลศาสตร์']);
+// Generate random geocode within Bangkok
+const generateBangkokGeocode = () => {
+    const lat = faker.number.float({ min: 13.65, max: 13.90, precision: 0.0001 }); // Latitude range for Bangkok
+    const lon = faker.number.float({ min: 100.40, max: 100.75, precision: 0.0001 }); // Longitude range for Bangkok
+    return `${lat},${lon}`;
+};
 
 // Function to create mock caregivers (male or female)
 async function caregiverMockup(count, gender) {
     const mockCaregivers = Array.from({ length: count }, () => {
         const thaiName = generateThaiName(gender);
         const profileImage = generateProfileImage(gender);
+        const startTime = faker.date.future().toISOString();
+        const endTime = new Date(new Date(startTime).setMonth(new Date(startTime).getMonth() + faker.number.int({ min: 1, max: 3 }))).toISOString();
 
         return {
             user: {
@@ -49,25 +74,24 @@ async function caregiverMockup(count, gender) {
                 lastname: thaiName.lastname,
                 sex: gender === 'male' ? 'ชาย' : 'หญิง',
                 birth_date: faker.date.birthdate({ min: 20, max: 60, mode: 'age' }),
-                weight: faker.number.float({ min: 40, max: 100, precision: 0.1 }),
-                height: faker.number.float({ min: 150, max: 200, precision: 0.1 }),
-                experience: faker.lorem.sentence(),
-                study_experience: faker.lorem.sentence(),
+                weight: faker.number.float({ min: 40, max: 100, precision: 1 }),
+                height: faker.number.float({ min: 150, max: 200, precision: 1 }),
+                experience: generateExp(),
+                study_experience: generateStuExp(),
                 certification_image: faker.image.urlPicsumPhotos(),
                 used_language: generateLanguage(),
                 is_term: true,
                 is_approve: true,
-                available_time: faker.date.future().toISOString().split('T')[0], // Generate future date in YYYY-MM-DD format
             },
             caregiverOrder: {
                 address: faker.location.streetAddress(),
-                geocode: `${faker.location.latitude()},${faker.location.longitude()}`,
+                geocode: generateBangkokGeocode(), // Use Bangkok geocode
                 want_client_type: faker.helpers.arrayElement(['ดูแลผู้สูงอายุ', 'ดูแลเด็กเล็ก', 'ดูแลผู้ป่วยติดเตียง', 'พาไปโรงพยาบาล', 'พาไปส่งตามที่ระบุ']),
-                payment_type: faker.helpers.arrayElement(['รายวัน', 'รายสัปดาห์', 'รายเดือน', 'รายปี']),
-                price: faker.number.int({ min: 500, max: 5000 }),
+                payment_type: faker.helpers.arrayElement(['วัน', 'สัปดาห์', 'เดือน', 'ปี']),
+                price: generatePrice(),
                 more_skill: faker.helpers.arrayElement(['ขับรถได้(มีรถ)', 'ทำอาหาร']),
-                start_time: faker.date.future().toISOString(),
-                end_time: faker.date.future({ years: 1 }).toISOString(),
+                start_time: startTime,
+                end_time: endTime,
             },
         };
     });
@@ -96,11 +120,14 @@ async function caregiverMockup(count, gender) {
     return mockCaregivers.length;
 }
 
+
 // Function to create mock clients (male or female)
 async function clientMockup(count, gender) {
     const mockClients = Array.from({ length: count }, () => {
         const thaiName = generateThaiName(gender);
         const profileImage = generateProfileImage(gender);
+        const startTime = faker.date.future().toISOString();
+        const endTime = new Date(new Date(startTime).setMonth(new Date(startTime).getMonth() + faker.number.int({ min: 1, max: 3 }))).toISOString();
 
         return {
             user: {
@@ -126,18 +153,17 @@ async function clientMockup(count, gender) {
                 drug_all: faker.helpers.arrayElement(['ไม่มี', 'ยาปฏิชีวนะ', 'ยาแก้ปวด']),
                 drug_used: faker.helpers.arrayElement(['ไม่มี', 'ยาเบาหวาน', 'ยาความดัน']),
                 is_term: true,
-                available_time: faker.date.future().toISOString().split('T')[0], // Generate future date in YYYY-MM-DD format
             },
             clientOrder: {
                 address: faker.location.streetAddress(),
-                geocode: `${faker.location.latitude()},${faker.location.longitude()}`,
+                geocode: generateBangkokGeocode(),
                 want_language: faker.helpers.arrayElement(['ไทย', 'อังกฤษ', 'จีน']),
                 payment_type: faker.helpers.arrayElement(['รายวัน', 'รายสัปดาห์', 'รายเดือน', 'รายปี']),
                 price: faker.number.int({ min: 500, max: 5000 }),
                 want_ext_skill: faker.helpers.arrayElement(['ขับรถได้(มีรถ)', 'ทำอาหารได้']),
                 more_addition: faker.helpers.arrayElement(['มีที่พักให้', 'มีมื้ออาหาร']),
-                start_time: faker.date.future().toISOString(),
-                end_time: faker.date.future({ years: 1 }).toISOString(),
+                start_time: startTime,
+                end_time: endTime,
             },
         };
     });
