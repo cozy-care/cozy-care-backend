@@ -1,7 +1,12 @@
 const db = require('../config/database');
 const { faker } = require('@faker-js/faker');
 const bcrypt = require('bcrypt');
+const CryptoJS = require("crypto-js");
 
+const encryptPassword = (password) => {
+    const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+    return hashedPassword;
+};
 // Helper functions
 const generateThaiName = (gender) => {
     const maleFirstNames = [
@@ -40,6 +45,21 @@ const generateProfileImage = (gender) => {
     return faker.helpers.arrayElement(gender === 'male' ? maleImages : femaleImages);
 };
 
+const generateClientProfileImage = (gender) => {
+    const maleImages = [
+        'https://img.freepik.com/free-photo/cheerful-mature-asian-man-thinking_53876-146955.jpg?ga=GA1.1.2101801578.1738766104&semt=ais_hybrid',
+        'https://img.freepik.com/free-photo/confident-man-standing-smiling_53876-13974.jpg?ga=GA1.1.2101801578.1738766104&semt=ais_hybrid',
+        'https://img.freepik.com/free-photo/senior-handsome-man-wearing-casual-polo-looking-confident-camera-with-smile-with-crossed-arms-hand-raised-chin-thinking-positive_839833-13286.jpg?ga=GA1.1.2101801578.1738766104&semt=ais_hybrid',
+    ];
+    const femaleImages = [
+        'https://img.freepik.com/free-photo/cheerful-old-casual-woman-giving-thumbs-up_53876-22959.jpg?ga=GA1.1.2101801578.1738766104&semt=ais_hybrid',
+        'https://img.freepik.com/free-photo/expressive-senior-woman-posing_344912-927.jpg?ga=GA1.1.2101801578.1738766104&semt=ais_hybrid',
+        'https://img.freepik.com/free-photo/cheerful-old-casual-asian-woman_53876-26362.jpg?ga=GA1.1.2101801578.1738766104&semt=ais_hybrid',
+    ];
+    return faker.helpers.arrayElement(gender === 'male' ? maleImages : femaleImages);
+};
+
+
 const generateLanguage = () => faker.helpers.arrayElement(['ไทย', 'อังกฤษ', 'จีน']);
 const generatePrice = () => faker.helpers.arrayElement(['800', '1600', '3000', '5000']);
 const generateExp = () => faker.helpers.arrayElement(['5 ปี', '3 ปี', '6 ปี', '10 ปี']);
@@ -58,11 +78,11 @@ async function caregiverMockup(count, gender) {
         const profileImage = generateProfileImage(gender);
         const startTime = faker.date.future().toISOString();
         const endTime = new Date(new Date(startTime).setMonth(new Date(startTime).getMonth() + faker.number.int({ min: 1, max: 3 }))).toISOString();
-
+        const password = encryptPassword('1234');
         return {
             user: {
                 username: faker.internet.username(),
-                password: bcrypt.hashSync('1234', 10), // Hash the password
+                password: bcrypt.hashSync(password, 10), // Hash the password
                 email: faker.internet.email(),
                 role: 'caregiver',
                 alias: thaiName.firstname,
@@ -125,14 +145,15 @@ async function caregiverMockup(count, gender) {
 async function clientMockup(count, gender) {
     const mockClients = Array.from({ length: count }, () => {
         const thaiName = generateThaiName(gender);
-        const profileImage = generateProfileImage(gender);
+        const profileImage = generateClientProfileImage(gender);
         const startTime = faker.date.future().toISOString();
         const endTime = new Date(new Date(startTime).setMonth(new Date(startTime).getMonth() + faker.number.int({ min: 1, max: 3 }))).toISOString();
+        const password = encryptPassword('1234');
 
         return {
             user: {
                 username: faker.internet.username(),
-                password: bcrypt.hashSync('1234', 10), // Hash the password
+                password: bcrypt.hashSync(password, 10), // Hash the password
                 email: faker.internet.email(),
                 role: 'client',
                 alias: thaiName.firstname,

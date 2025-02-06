@@ -181,17 +181,27 @@ async function getOtherUserDataByChatId(req, res) {
       return res.status(403).json({ error: 'You are not part of this chat' });
     }
 
-    // Fetch the other user's profile
-    const otherUserProfile = await db('Users')
-      .select('user_id', 'alias', 'profile_image')
-      .where({ user_id: otherUserId })
+    // Fetch the other user's profile from the Caregiver and Users tables
+    const otherUserProfile = await db('Caregiver')
+      .join('Users', 'Caregiver.user_id', '=', 'Users.user_id')
+      .select('Caregiver.*', 'Users.profile_image') // Select all fields from Caregiver and profile_image from Users
+      .where('Caregiver.user_id', otherUserId)
       .first();
 
     if (!otherUserProfile) {
       return res.status(404).json({ error: 'Other user not found' });
     }
 
-    res.status(200).json(otherUserProfile);
+    // Combine firstname and lastname into fullname
+    const fullname = `${otherUserProfile.firstname} ${otherUserProfile.lastname}`;
+
+    // Prepare the response object
+    const response = {
+      ...otherUserProfile, // Include all fields from the Caregiver table
+      alias: fullname, // Add the fullname field
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     console.error('Error retrieving other user profile:', error);
     res.status(500).json({ error: 'Internal server error' });

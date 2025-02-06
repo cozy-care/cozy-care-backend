@@ -106,4 +106,89 @@ async function getAllCaregiverOrder(req, res) {
     }
 }
 
-module.exports = { getAllCaregiverOrder };
+async function getAllClientOrder(req, res) {
+    try {
+        // Query to fetch all client orders, their associated client details, and user profile image
+        const clientOrders = await db('ClientOrder')
+            .join('SubClient', 'ClientOrder.sub_client_id', '=', 'SubClient.sub_client_id')
+            .join('Client', 'SubClient.client_id', '=', 'Client.client_id')
+            .join('Users', 'Client.user_id', '=', 'Users.user_id')
+            .select(
+                'Client.user_id',
+                'SubClient.firstname',
+                'SubClient.middlename',
+                'SubClient.lastname',
+                'SubClient.sex',
+                'SubClient.birth_date',
+                'SubClient.weight',
+                'SubClient.height',
+                'SubClient.client_type',
+                'SubClient.phy_con',
+                'SubClient.con_dis',
+                'SubClient.drug_all',
+                'SubClient.drug_used',
+                'ClientOrder.address',
+                'ClientOrder.geocode',
+                'ClientOrder.want_language',
+                'ClientOrder.payment_type',
+                'ClientOrder.price',
+                'ClientOrder.want_ext_skill',
+                'ClientOrder.more_addition',
+                'ClientOrder.start_time',
+                'ClientOrder.end_time',
+                'Users.profile_image'
+            );
+
+        if (!clientOrders || clientOrders.length === 0) {
+            return res.status(404).json({ error: 'No client orders found' });
+        }
+
+        const formatThaiDateStart = (date) => {
+            if (!date) return null;
+            return dayjs(date).format('D MMM');
+        };
+
+        const formatThaiDateEnd = (date) => {
+            if (!date) return null;
+            return dayjs(date).format('D MMM BBBB');
+        };
+
+        const formattedClientOrders = clientOrders.map((order) => {
+            let startTime = formatThaiDateStart(order.start_time);
+            let endTime = formatThaiDateEnd(order.end_time);
+
+            let distance = null;
+            if (order.geocode) {
+                const [lat, lon] = order.geocode.split(',').map(Number);
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    distance = calculateDistance(FIXED_LAT, FIXED_LON, lat, lon).toFixed(2);
+                }
+            }
+
+            // Format height and weight to two decimal places
+            const formattedHeight = parseFloat(order.height).toFixed(2);
+            const formattedWeight = parseFloat(order.weight).toFixed(2);
+
+            // Format price as "price บาท / payment_type"
+            const formattedPrice = `${order.price} บาท / ${order.payment_type}`;
+
+            return {
+                ...order,
+                start_time: startTime,
+                end_time: endTime,
+                available_time: startTime && endTime ? `${startTime} - ${endTime}` : null,
+                distance_km: distance ? `${distance}` : 'Unknown',
+                height: formattedHeight,
+                weight: formattedWeight,
+                price: formattedPrice,
+            };
+        });
+
+        return res.status(200).json(formattedClientOrders);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+}
+
+module.exports = { getAllCaregiverOrder, getAllClientOrder };
