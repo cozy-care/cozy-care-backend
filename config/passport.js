@@ -12,7 +12,8 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         let user = await db('Users').where({ google_id: profile.id }).first();
-
+        const firstName = profile.name?.givenName || '';
+        const lastName = profile.name?.familyName || '';
         if (!user) {
           // Register new user
           const newUser = {
@@ -20,8 +21,7 @@ passport.use(
             email: profile.emails[0].value,
             google_id: profile.id,
             role: 'user',
-            alias: 'Unknown',
-            isOTP: true
+            alias: `${firstName} ${lastName}`.trim(),
           };
           const [userId] = await db('Users')
             .insert(newUser)
