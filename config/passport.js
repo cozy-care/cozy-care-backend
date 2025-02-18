@@ -29,7 +29,6 @@ passport.use(
           user = { ...newUser, user_id: userId };
         }
 
-
         return done(null, user);
       } catch (error) {
         console.error('Error in GoogleStrategy:', error); // Log the error
