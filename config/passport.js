@@ -11,6 +11,14 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+
+        const existingUser = await db('Users').where({ email: profile.emails[0].value }).first();
+
+        // If the email exists but is not associated with Google, redirect to normal login
+        if (existingUser && !existingUser.google_id) {
+          return done(null, false, { message: 'This email is used for normal login. Please use normal login.' });
+        }
+
         let user = await db('Users').where({ google_id: profile.id }).first();
         const firstName = profile.name?.givenName || '';
         const lastName = profile.name?.familyName || '';

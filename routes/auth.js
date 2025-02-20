@@ -22,9 +22,14 @@ router.get(
   passport.authenticate('google', { scope: ['profile', 'email'] }),
 );
 
+router.get('/login', (req, res) => {
+  const message = req.session.messages?.pop(); // Get the message from Passport
+  res.render('login', { message });
+});
+
 router.get(
   '/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login' }),
+  passport.authenticate('google', { failureRedirect: `${process.env.CLIENT_URL}/login?error=This email is used for normal login. Please use normal login.`, failureMessage: true}),
   googleLogin,
 );
 
