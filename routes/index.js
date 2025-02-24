@@ -2,11 +2,11 @@ const express = require('express');
 const authRoutes = require('./auth');
 const userRoutes = require('./user');
 const chatRoutes = require('./chat');
-const patientRoutes = require('./patient');
 const mockRoutes = require('./mock');
-const caregiverRoutes = require('./caregiver')
-const taskRoutes = require('./task')
-const orderRoutes = require('./order')
+const caregiverRoutes = require('./caregiver');
+const taskRoutes = require('./task');
+const orderRoutes = require('./order');
+const clientRoutes = require('./client');
 const multer = require('multer');
 
 const router = express.Router();
@@ -14,11 +14,11 @@ const router = express.Router();
 router.use('/auth', authRoutes);
 router.use('/user', userRoutes);
 router.use('/chat', chatRoutes);
-router.use('/patient', patientRoutes);
 router.use('/mock', mockRoutes);
 router.use('/caregiver', caregiverRoutes);
 router.use('/task', taskRoutes);
 router.use('/order', orderRoutes);
+router.use('/client', clientRoutes);
 
 // Define multer storage engine
 const storage = multer.diskStorage({
