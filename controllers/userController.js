@@ -148,9 +148,7 @@ async function getOtherUserDataByChatId(req, res) {
 
   // If no token is found, return an error
   if (!token) {
-    return res
-      .status(401)
-      .json({ error: 'No token found, authorization denied' });
+    return res.status(401).json({ error: 'No token found, authorization denied' });
   }
 
   const { chat_id } = req.params;
@@ -167,39 +165,77 @@ async function getOtherUserDataByChatId(req, res) {
     } else if (decoded.user_id && typeof decoded.user_id === 'object') {
       userId = decoded.user_id.user_id; // Extract from the object if it's an object
     } else {
-      return res
-        .status(400)
-        .json({ error: 'Invalid token: user_id not found' });
+      return res.status(400).json({ error: 'Invalid token: user_id not found' });
     }
 
     const chat = await db('Chat').where({ chat_id }).first();
 
-    const otherUserId =
-      chat.user1_id === userId ? chat.user2_id : chat.user1_id;
+    const otherUserId = chat.user1_id === userId ? chat.user2_id : chat.user1_id;
 
     if (!otherUserId) {
       return res.status(403).json({ error: 'You are not part of this chat' });
     }
 
-    // Fetch the other user's profile from the Caregiver and Users tables
-    const otherUserProfile = await db('Caregiver')
-      .join('Users', 'Caregiver.user_id', '=', 'Users.user_id')
-      .select('Caregiver.*', 'Users.profile_image') // Select all fields from Caregiver and profile_image from Users
-      .where('Caregiver.user_id', otherUserId)
-      .first();
+    // ตรวจสอบ role ของ otherUserId จาก Users table
+    const otherUser = await db('Users').select('role').where({ user_id: otherUserId }).first();
 
-    if (!otherUserProfile) {
-      return res.status(404).json({ error: 'Other user not found' });
+    if (!otherUser) {
+      return res.status(404).json({ error: 'User not found' });
     }
 
-    // Combine firstname and lastname into fullname
-    const fullname = `${otherUserProfile.firstname} ${otherUserProfile.lastname}`;
+    let response;
 
-    // Prepare the response object
-    const response = {
-      ...otherUserProfile, // Include all fields from the Caregiver table
-      alias: fullname, // Add the fullname field
-    };
+    if (otherUser.role === 'caregiver') {
+      // ดึงข้อมูลจาก Caregiver และ Users
+      const otherUserProfile = await db('Caregiver')
+        .join('Users', 'Caregiver.user_id', '=', 'Users.user_id')
+        .select('Caregiver.*', 'Users.profile_image')
+        .where('Caregiver.user_id', otherUserId)
+        .first();
+
+      if (!otherUserProfile) {
+        return res.status(404).json({ error: 'Caregiver not found' });
+      }
+
+      // Combine firstname and lastname into fullname
+      const fullname = `${otherUserProfile.firstname} ${otherUserProfile.lastname}`;
+
+      response = {
+        ...otherUserProfile,
+        alias: fullname, // Add the fullname field
+      };
+
+    } else if (otherUser.role === 'client') {
+      // ดึงข้อมูลจาก Client
+      const client = await db('Client')
+        .select('client_id')
+        .where({ user_id: otherUserId })
+        .first();
+
+      if (!client) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+
+      // ดึงข้อมูลจาก SubClient
+      const subClient = await db('SubClient')
+        .select('*') // เลือกข้อมูลทั้งหมด รวมถึง profile_image
+        .where({ client_id: client.client_id })
+        .first();
+
+      const fullname = `${subClient.firstname} ${subClient.lastname}`;
+
+      if (!subClient) {
+        return res.status(404).json({ error: 'SubClient not found' });
+      }
+
+      response = {
+        user_id: otherUserId,
+        ...subClient, // รวมข้อมูลทั้งหมดจาก SubClient
+        alias: fullname,
+      };
+    } else {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
 
     res.status(200).json(response);
   } catch (error) {
