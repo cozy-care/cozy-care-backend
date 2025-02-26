@@ -1,54 +1,112 @@
 const db = require('../config/database');
 
-async function getAllCaregiver(req, res) {
+async function createCaregiver(req, res) {
+    const {
+        user_id,
+        firstname,
+        middlename,
+        lastname,
+        sex,
+        birth_date,
+        weight,
+        height,
+        used_language,
+        experience,
+        study_experience,
+        certification_image,
+        is_term
+    } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const trx = await db.transaction();
+
     try {
-        // Query to fetch all caregivers and their associated user details
-        const caregivers = await db('Caregiver')
-            .join('Users', 'Caregiver.user_id', '=', 'Users.user_id')
-            .select(
-                'Caregiver.caregiver_id',
-                'Caregiver.firstname',
-                'Caregiver.lastname',
-                'Caregiver.middlename',
-                'Caregiver.sex',
-                'Caregiver.birth_date',
-                'Caregiver.weight',
-                'Caregiver.height',
-                'Caregiver.province',
-                'Caregiver.district',
-                'Caregiver.sub_district',
-                'Caregiver.experience',
-                'Caregiver.expert',
-                'Caregiver.certification_image',
-                'Caregiver.used_language',
-                'Caregiver.is_approve',
-                'Caregiver.available_time',
-                'Users.user_id',
-                'Users.profile_image',
-                'Users.username',
-                'Users.email',
-                'Users.alias'
-            );
+        // อัปเดต role ของ user_id ใน Users table
+        await trx('Users')
+            .where({ user_id })
+            .update({ role: 'caregiver' });
 
-        // Check if there are any caregivers in the database
-        if (!caregivers || caregivers.length === 0) {
-            return res.status(404).json({ error: 'No caregivers found' });
-        }
+        // แทรกข้อมูลใหม่ลงใน Caregivers table
+        await trx('Caregiver').insert({
+            user_id,
+            firstname,
+            middlename,
+            lastname,
+            sex,
+            birth_date,
+            weight,
+            height,
+            used_language,
+            experience,
+            study_experience,
+            certification_image,
+            is_term
+        });
 
-        // Format available_time to YYYY-MM-DD
-        const formattedCaregivers = caregivers.map((caregiver) => ({
-            ...caregiver,
-            available_time: caregiver.available_time
-                ? new Date(caregiver.available_time).toISOString().split('T')[0]
-                : null, // Ensure null is returned if no available_time
-        }));
-
-        // Return the list of caregivers
-        return res.status(200).json(formattedCaregivers);
+        // Commit transaction หากไม่มีข้อผิดพลาด
+        await trx.commit();
+        res.status(201).json({ message: "Caregiver created successfully" });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Internal server error', details: error.message });
+        await trx.rollback();
+        console.error("Error creating caregiver:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 }
 
-module.exports = { getAllCaregiver };
+async function getCaregiverDetails(req, res) {
+    const { user_id } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
+
+    try {
+        // Query caregiver details from the Caregiver table
+        const caregiver = await db('Caregiver')
+            .where({ user_id })
+            .first(); // Get only one record
+
+        if (!caregiver) {
+            return res.status(404).json({ message: "Caregiver not found" });
+        }
+
+        res.status(200).json(caregiver);
+    } catch (error) {
+        console.error("Error fetching caregiver details:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+}
+
+async function updateCaregiverDetails(req, res) {
+    const { user_id, ...updateFields } = req.body;
+
+    if (!user_id) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
+
+    try {
+        // Check if the caregiver exists
+        const caregiverExists = await db('Caregiver')
+            .where({ user_id })
+            .first();
+
+        if (!caregiverExists) {
+            return res.status(404).json({ message: "Caregiver not found" });
+        }
+
+        // Update only the provided fields
+        await db('Caregiver')
+            .where({ user_id })
+            .update(updateFields);
+
+        res.status(200).json({ message: "Caregiver details updated successfully" });
+    } catch (error) {
+        console.error("Error updating caregiver details:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+}
+
+module.exports = { createCaregiver, getCaregiverDetails, updateCaregiverDetails };

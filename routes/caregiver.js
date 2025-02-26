@@ -1,6 +1,8 @@
 const express = require('express');
-const { getAllCaregiver } = require('../controllers/caregiverController');
+const { createCaregiver, getCaregiverDetails, updateCaregiverDetails } = require('../controllers/caregiverController');
 const router = express.Router();
 
-router.get('/all', getAllCaregiver)
+router.post('/create-caregiver', createCaregiver)
+router.post('/get-caregiver-details', getCaregiverDetails)
+router.put('/update-caregiver-details', updateCaregiverDetails)
 module.exports = router;
