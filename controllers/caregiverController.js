@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const knex = require('../config/database'); // Assuming you have configured Knex.js
 
 async function createCaregiver(req, res) {
     const {
@@ -109,4 +110,19 @@ async function updateCaregiverDetails(req, res) {
     }
 }
 
-module.exports = { createCaregiver, getCaregiverDetails, updateCaregiverDetails };
+async function getCaregiverIdByUserId(req, res) {
+    const { user_id } = req.body;
+    try {
+        const caregiver = await knex('Caregiver')
+        .select('caregiver_id')
+        .where({ user_id })
+        .first();
+
+        res.status(200).json({ caregiver });
+    } catch (error) {
+        console.error('Error updating SubClient:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+module.exports = { createCaregiver, getCaregiverDetails, updateCaregiverDetails, getCaregiverIdByUserId };

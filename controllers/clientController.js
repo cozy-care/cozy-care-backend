@@ -203,4 +203,19 @@ async function updateSubClientDetail(req, res) {
     }
 }
 
-module.exports = { createSubClient, getSubClient, delSubClient, getSubClientDetail, updateSubClientDetail };
+async function getClientIdByUserId(req, res) {
+    const { user_id } = req.body;
+    try {
+        const client = await knex('Client')
+        .select('client_id')
+        .where({ user_id })
+        .first();
+
+        res.status(200).json({ client });
+    } catch (error) {
+        console.error('Error updating SubClient:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+module.exports = { createSubClient, getSubClient, delSubClient, getSubClientDetail, updateSubClientDetail, getClientIdByUserId };

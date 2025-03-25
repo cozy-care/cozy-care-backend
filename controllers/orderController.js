@@ -191,4 +191,61 @@ async function getAllClientOrder(req, res) {
     }
 }
 
-module.exports = { getAllCaregiverOrder, getAllClientOrder };
+async function createCaregiverOrder(req, res) {
+    try {
+        const {
+            caregiver_id,
+            address,
+            geocode,
+            want_client_type,
+            payment_type,
+            price,
+            more_skill,
+            start_time,
+            end_time,
+        } = req.body;
+
+        // ตรวจสอบ input ที่จำเป็น
+        if (
+            !caregiver_id ||
+            !address ||
+            !geocode ||
+            !want_client_type ||
+            !payment_type ||
+            !price ||
+            !start_time ||
+            !end_time
+        ) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // ตรวจสอบว่า geocode เป็น string lat,lng
+        const isValidGeocode = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/.test(geocode);
+        if (!isValidGeocode) {
+            return res.status(400).json({ error: 'Invalid geocode format' });
+        }
+
+        const timestamp = dayjs().toISOString();
+
+        await db('CaregiverOrder').insert({
+            caregiver_id,
+            address,
+            geocode,
+            want_client_type,
+            payment_type,
+            price,
+            more_skill: more_skill || null,
+            start_time,
+            end_time,
+            created_at: timestamp,
+            updated_at: timestamp,
+        });
+
+        return res.status(201).json({ message: 'Caregiver order created successfully' });
+    } catch (error) {
+        console.error('Error creating caregiver order:', error);
+        return res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+}
+
+module.exports = { getAllCaregiverOrder, getAllClientOrder, createCaregiverOrder };

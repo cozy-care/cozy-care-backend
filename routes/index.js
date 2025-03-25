@@ -7,6 +7,7 @@ const caregiverRoutes = require('./caregiver');
 const taskRoutes = require('./task');
 const orderRoutes = require('./order');
 const clientRoutes = require('./client');
+const reviewRoutes = require('./review');
 const multer = require('multer');
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.use('/caregiver', caregiverRoutes);
 router.use('/task', taskRoutes);
 router.use('/order', orderRoutes);
 router.use('/client', clientRoutes);
+router.use('/review', reviewRoutes);
 
 // Define multer storage engine
 const storage = multer.diskStorage({
