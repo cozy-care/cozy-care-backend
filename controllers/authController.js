@@ -109,10 +109,6 @@ async function login(req, res) {
       return res.status(400).json({ error: 'Invalid password' });
     }
 
-    const token = createToken(user);
-    res.cookie('token', token, { httpOnly: true, maxAge: 10800000 }); // 3 hour
-    console.log('cookie sent!');
-
     return res.status(200).json({ 
       message: 'Logged in successfully',
       isOTP: user.isOTP,
