@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const db = require('../config/database');
+const CryptoJS = require('crypto-js')
 
 // Function to create a JWT token
 function createToken(user) {
@@ -15,6 +16,11 @@ function createToken(user) {
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
+
+function encryptPassword(password) {
+  const hashedPassword = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+  return hashedPassword;
+};
 
 // Register function to create a new user in the Users table
 async function register(req, res) {
@@ -318,7 +324,10 @@ async function forgotPassword(req, res) {
 
     const newPassword = Math.random().toString(36).slice(-8);
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Hash the password before storing it in the database
+    const encrypted = encryptPassword(newPassword); // SHA256
+    const salt = bcrypt.genSaltSync(10); 
+    const hashedPassword = await bcrypt.hashSync(encrypted, salt);
 
     await db('Users')
     .where('user_id', user.user_id)
@@ -347,7 +356,7 @@ async function forgotPassword(req, res) {
     // Send the email
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ message: 'Password has been sent to your registered email.' });
+    res.status(200).json({ message: 'Password has been sent to your registered email.', email: recipientEmail });
   } catch (error) {
     console.error('Error during forgot password process:', error);
     res.status(500).json({ error: 'Internal server error.' });
