@@ -11,8 +11,17 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        let user = await db('Users').where({ google_id: profile.id }).first();
 
+        const existingUser = await db('Users').where({ email: profile.emails[0].value }).first();
+
+        // If the email exists but is not associated with Google, redirect to normal login
+        if (existingUser && !existingUser.google_id) {
+          return done(null, false, { message: 'This email is used for normal login. Please use normal login.' });
+        }
+
+        let user = await db('Users').where({ google_id: profile.id }).first();
+        const firstName = profile.name?.givenName || '';
+        const lastName = profile.name?.familyName || '';
         if (!user) {
           // Register new user
           const newUser = {
@@ -20,8 +29,7 @@ passport.use(
             email: profile.emails[0].value,
             google_id: profile.id,
             role: 'user',
-            firstname: profile.name.givenName,
-            lastname: profile.name.familyName,
+            alias: `${firstName} ${lastName}`.trim(),
           };
           const [userId] = await db('Users')
             .insert(newUser)
@@ -31,6 +39,7 @@ passport.use(
 
         return done(null, user);
       } catch (error) {
+        console.error('Error in GoogleStrategy:', error); // Log the error
         return done(error, null);
       }
     },
@@ -38,8 +47,12 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  console.log("Serializing user:", user);
-  done(null, user.user_id);
+
+  if (user && user.user_id) {
+    done(null, user.user_id);
+  } else {
+    done(new Error('User ID is not defined'), null);
+  }
 });
 
 passport.deserializeUser(async (id, done) => {
@@ -47,8 +60,13 @@ passport.deserializeUser(async (id, done) => {
     const userId = typeof id === 'object' && id.user_id ? id.user_id : id;
 
     const user = await db('Users').where({ user_id: userId }).first();
-    done(null, user);
+    if (user) {
+      done(null, user);
+    } else {
+      done(new Error('User not found'), null);
+    }
   } catch (error) {
+    console.error('Error during deserialization:', error); // Log the error
     done(error, null);
   }
 });

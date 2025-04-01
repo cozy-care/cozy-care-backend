@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
+const { format } = require('date-fns');
 
 async function getLoggedInUserData(req, res) {
   // Get the token from the cookies
@@ -7,7 +8,9 @@ async function getLoggedInUserData(req, res) {
 
   // If no token is found, return an error
   if (!token) {
-    return res.status(401).json({ error: 'No token found, authorization denied' });
+    return res
+      .status(401)
+      .json({ error: 'No token found, authorization denied' });
   }
 
   try {
@@ -15,7 +18,17 @@ async function getLoggedInUserData(req, res) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Extract the user ID from the decoded token
-    const userId = decoded.user_id;
+    let userId;
+
+    if (typeof decoded.user_id === 'string') {
+      userId = decoded.user_id; // Directly use it if it's a string
+    } else if (decoded.user_id && typeof decoded.user_id === 'object') {
+      userId = decoded.user_id.user_id; // Extract from the object if it's an object
+    } else {
+      return res
+        .status(400)
+        .json({ error: 'Invalid token: user_id not found' });
+    }
 
     // Query the Users table to get the user data by ID
     const user = await db('Users')
@@ -33,9 +46,258 @@ async function getLoggedInUserData(req, res) {
     // Return the user data
     res.status(200).json(userData);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Error retrieving user data' });
   }
 }
 
+async function editUserData(req, res) {
+  // Get the token from the cookies
+  const token = req.cookies.token;
 
-module.exports = getLoggedInUserData;
+  // If no token is found, return an error
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: 'No token found, authorization denied' });
+  }
+
+  try {
+    // Verify the token using the secret
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Extract the user ID from the decoded token
+    let userId;
+
+    if (typeof decoded.user_id === 'string') {
+      userId = decoded.user_id; // Directly use it if it's a string
+    } else if (decoded.user_id && typeof decoded.user_id === 'object') {
+      userId = decoded.user_id.user_id; // Extract from the object if it's an object
+    } else {
+      return res
+        .status(400)
+        .json({ error: 'Invalid token: user_id not found' });
+    }
+
+    // Get the data to update from the request body
+    const { username, email, alias, profile_image, phone } = req.body;
+
+    if (username) {
+      return res.status(400).json({ error: 'Username cannot be changed' });
+    }
+
+    // Build the update object dynamically, excluding undefined fields
+    const updateData = {};
+    if (email !== undefined) updateData.email = email;
+    if (alias !== undefined) updateData.alias = alias;
+    if (profile_image !== undefined) updateData.profile_image = profile_image;
+    if (phone !== undefined) updateData.phone = phone;
+
+    // Add update_time to the update data
+    updateData.updated_at = new Date();
+
+    // Update the user data in the database
+    // After the user is updated and before formatting
+    const updatedUser = await db('Users')
+      .where({ user_id: userId })
+      .whereNull('deleted_at')
+      .update(updateData, [
+        'email',
+        'alias',
+        'profile_image',
+        'phone',
+        'updated_at',
+      ]); // Specify fields to return
+
+    // If no user is updated, return 404
+    if (!updatedUser || !updatedUser[0]) {
+      return res
+        .status(404)
+        .json({ error: 'User not found or no changes made' });
+    }
+
+    // Access the updated_at value
+    const updatedAt = updatedUser[0].updated_at; // Access the first element since we used returning array
+
+    if (!updatedAt) {
+      return res
+        .status(500)
+        .json({ error: 'Updated timestamp is not available' });
+    }
+
+    // Check if updatedAt is a Date object or a string and format it accordingly
+    const formattedUpdatedAt = format(
+      new Date(updatedAt),
+      'dd-MM-yyyy HH:mm:ss',
+    );
+
+    // Return the updated user data with formatted updated_at
+    res.status(200).json({
+      ...updatedUser[0], // Spread the first object from the returned array
+      updated_at: formattedUpdatedAt, // Replace with the formatted time
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Error updating user data' });
+  }
+}
+
+async function getOtherUserDataByChatId(req, res) {
+  // Get the token from the cookies
+  const token = req.cookies.token;
+
+  // If no token is found, return an error
+  if (!token) {
+    return res.status(401).json({ error: 'No token found, authorization denied' });
+  }
+
+  const { chat_id } = req.params;
+
+  try {
+    // Verify the token using the secret
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Extract the user ID from the decoded token
+    let userId;
+
+    if (typeof decoded.user_id === 'string') {
+      userId = decoded.user_id; // Directly use it if it's a string
+    } else if (decoded.user_id && typeof decoded.user_id === 'object') {
+      userId = decoded.user_id.user_id; // Extract from the object if it's an object
+    } else {
+      return res.status(400).json({ error: 'Invalid token: user_id not found' });
+    }
+
+    const chat = await db('Chat').where({ chat_id }).first();
+
+    const otherUserId = chat.user1_id === userId ? chat.user2_id : chat.user1_id;
+
+    if (!otherUserId) {
+      return res.status(403).json({ error: 'You are not part of this chat' });
+    }
+
+    // ตรวจสอบ role ของ otherUserId จาก Users table
+    const otherUser = await db('Users').select('role').where({ user_id: otherUserId }).first();
+
+    if (!otherUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let response;
+
+    if (otherUser.role === 'caregiver') {
+      // ดึงข้อมูลจาก Caregiver และ Users
+      const otherUserProfile = await db('Caregiver')
+        .join('Users', 'Caregiver.user_id', '=', 'Users.user_id')
+        .select('Caregiver.*', 'Users.profile_image')
+        .where('Caregiver.user_id', otherUserId)
+        .first();
+
+      if (!otherUserProfile) {
+        return res.status(404).json({ error: 'Caregiver not found' });
+      }
+
+      // Combine firstname and lastname into fullname
+      const fullname = `${otherUserProfile.firstname} ${otherUserProfile.lastname}`;
+
+      response = {
+        ...otherUserProfile,
+        alias: fullname, // Add the fullname field
+      };
+
+    } else if (otherUser.role === 'client') {
+      // ดึงข้อมูลจาก Client
+      const client = await db('Client')
+        .select('client_id')
+        .where({ user_id: otherUserId })
+        .first();
+
+      if (!client) {
+        return res.status(404).json({ error: 'Client not found' });
+      }
+
+      // ดึงข้อมูลจาก SubClient
+      const subClient = await db('SubClient')
+        .select('*') // เลือกข้อมูลทั้งหมด รวมถึง profile_image
+        .where({ client_id: client.client_id })
+        .first();
+
+      const fullname = `${subClient.firstname} ${subClient.lastname}`;
+
+      if (!subClient) {
+        return res.status(404).json({ error: 'SubClient not found' });
+      }
+
+      response = {
+        user_id: otherUserId,
+        ...subClient, // รวมข้อมูลทั้งหมดจาก SubClient
+        alias: fullname,
+      };
+    } else {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error retrieving other user profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function editRole(req, res) {
+  // Get the token from the cookies
+  const token = req.cookies.token;
+  const { role } = req.body;
+
+  // If no token is found, return an error
+  if (!token) {
+    return res
+      .status(401)
+      .json({ error: 'No token found, authorization denied' });
+  }
+
+  if (!role) {
+    return res.status(401).json({ error: 'No role select'});
+  }
+
+  try {
+    // Verify the token using the secret
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Extract the user ID from the decoded token
+    let user_id;
+
+    if (typeof decoded.user_id === 'string') {
+      user_id = decoded.user_id; // Directly use it if it's a string
+    } else if (decoded.user_id && typeof decoded.user_id === 'object') {
+      user_id = decoded.user_id.user_id; // Extract from the object if it's an object
+    } else {
+      return res.status(400).json({ error: 'Invalid token: user_id not found' });
+    }
+
+    const result = await db('Users')
+      .where({ user_id: user_id })
+      .whereNull('deleted_at')
+      .update({ role });
+
+    if (result) {
+      return res.status(200).json({ message: 'Role updated successfully' });
+    } else {
+      return res.status(404).json({ error: 'User not found or already deleted' });
+    }
+
+  } catch (error) {
+    console.error(error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+module.exports = {
+  getLoggedInUserData,
+  editUserData,
+  getOtherUserDataByChatId,
+  editRole
+};

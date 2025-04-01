@@ -14,16 +14,30 @@ pipeline {
             }
         }
 
-        stage("Clear Docker Containers") {
+        stage("Clear Running Docker Containers") {
             steps {
                 script {
-                    def runningContainers = sh(script: 'docker ps -q | wc -l', returnStdout: true).trim().toInteger()
+                    def containerIds = sh(script: 'docker ps -a --filter "ancestor=cozycare-backend-image" -q', returnStdout: true).trim()
 
-                    if (runningContainers > 0) {
-                        sh 'docker stop $(docker ps -a -q)'
-                        sh 'docker rm $(docker ps -a -q)'
+                    if (containerIds) {
+                        sh "docker stop ${containerIds}"
+                        sh "docker rm ${containerIds}"
                     } else {
-                        echo "Nothing exist. Running container count: $runningContainers"
+                        echo "No containers with the image 'cozycare-backend-image' found."
+                    }
+                }
+            }
+        }
+
+        stage("Remove Old Docker Images") {
+            steps {
+                script {
+                    def imageIds = sh(script: 'docker images --filter "reference=cozycare-backend-image" -q', returnStdout: true).trim()
+
+                    if (imageIds) {
+                        sh "docker rmi ${imageIds}"
+                    } else {
+                        echo "No images with the name 'cozycare-backend-image' found."
                     }
                 }
             }
@@ -41,12 +55,15 @@ pipeline {
                     echo "JWT_SECRET=${JWT_SECRET}" >> .env
                     echo "GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}" >> .env
                     echo "GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}" >> .env
-                    echo "GOOGLE_CALLBACK_URL=https://gold39.ce.kmitl.ac.th/api/auth/google/callback" >> .env
-                    echo "POSTGRES_HOST=161.246.70.39" >> .env
+                    echo "GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}" >> .env
+                    echo "GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}" >> .env
+                    echo "EMAIL_2FA=${EMAIL_2FA}" >> .env
+                    echo "PASSWORD_2FA=${PASSWORD_2FA}" >> .env
+                    echo "POSTGRES_HOST=${POSTGRES_HOST}" >> .env
                     echo "POSTGRES_PORT=5432" >> .env
-                    echo "POSTGRES_USER=cozycareadmin" >> .env
+                    echo "POSTGRES_USER=${POSTGRES_USER}" >> .env
                     echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> .env
-                    echo "POSTGRES_DB=cozycaredb" >> .env
+                    echo "POSTGRES_DB=${POSTGRES_DB}" >> .env
                     '''
                 }
             }
@@ -56,16 +73,8 @@ pipeline {
             steps {
                 echo 'Node/Express UP'
                 sh 'docker build -t cozycare-backend-image .'
-                sh 'docker run -d -p 3333:3333 cozycare-backend-image'
+                sh 'docker run -d -p 3333:3333 -v /var/www/uploads:/var/www/uploads cozycare-backend-image'
             }
         }
-
-        stage("Docker Frontend Up"){
-            steps {
-                echo 'NextJs UP'
-                sh 'docker run -d -p 3000:3000 cozycare-frontend-image'
-            }
-        }
-
     }
 }

@@ -1,34 +1,48 @@
-const dotenv = require('dotenv');
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const cors = require('cors');  // Import the cors package
+const cors = require('cors');
+const http = require('http');
+const socketIo = require('socket.io');
 const apiRoutes = require('./routes/index');
-const passport = require('./config/passport');
+const passportMiddleware = require('./middleware/passport');
+const sessionMiddleware = require('./middleware/session');
+const corsOptions = require('./config/corsOptions');
+const chatSocket = require('./sockets/chat');
+const { PORT } = require('./config/env');
 
-dotenv.config();
+// Initialize app
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, { cors: { origin: corsOptions.origin } });
 
-const corsOptions = {
-  origin: process.env.CLIENT_URL,  // Replace with your client's origin
-  credentials: true, // Allow cookies to be sent with requests
-};
-app.use(cors(corsOptions));  // Use CORS with specified options
-
+// Middleware setup
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-  }),
+app.use(sessionMiddleware);
+
+// Passport setup
+passportMiddleware(app);
+
+// Serve static files (for uploaded images)
+app.use('/uploads', express.static('/var/www/uploads'));
+
+// Make io accessible in routes
+app.use(
+  '/api',
+  (req, res, next) => {
+    req.io = io;
+    next();
+  },
+  apiRoutes,
 );
-app.use(passport.initialize());
-app.use(passport.session());
 
-app.use('/api', apiRoutes);
+// WebSocket setup
+chatSocket(io);
 
-const port = process.env.API_PORT;
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+// Start server
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+module.exports = { io };
